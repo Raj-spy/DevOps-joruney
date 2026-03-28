@@ -253,6 +253,27 @@ Phase 1: Linux/Docker Mastery
 
 ---
 
+### 🗓️ Day 23 — Docker Compose + Redis Integration
+**Topics:** Multi-container architecture, service networking, caching with Redis  
+
+- Built a multi-container setup using Docker Compose (FastAPI API + Redis)
+- Connected API to Redis using service name as hostname (`host="redis"`)
+- Implemented Redis caching (cache hit vs cache miss logic)
+- Added named volume for Redis to persist data across container restarts
+- Used `depends_on` to ensure proper service startup order
+- Exposed services using port mapping (`8000`, `6379`)
+- Verified setup using `curl` and container logs
+
+**Commands Used:**
+```bash
+docker-compose up -d --build
+docker ps
+docker-compose logs -f
+
+curl -X POST "http://localhost:8000/analyze" \
+-H "Content-Type: application/json" \
+-d '{"text":"Avengers was amazing","movie_name":"Avengers"}'
+
 ## 🔜 Coming Up
 
 | Day | Topic |
