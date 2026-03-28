@@ -263,6 +263,7 @@ Phase 1: Linux/Docker Mastery
 - Used `depends_on` to ensure proper service startup order
 - Exposed services using port mapping (`8000`, `6379`)
 - Verified setup using `curl` and container logs
+- demo work for practical
 
 **Commands Used:**
 ```bash
