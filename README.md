@@ -265,6 +265,15 @@ Phase 1: Linux/Docker Mastery
 - Verified setup using `curl` and container logs
 - demo work for practical
 
+---
+
+### 🗓️ Day 23 — Docker Compose + Redis Integration
+-Learned Git branching strategy (GitFlow) including feature, develop, and main branches for structured development. -Practiced rebase and squash to maintain a clean and linear commit history.
+-Built a monitoring setup using FastAPI, Prometheus, and Grafana. Exposed /metrics endpoint and created a custom -counter (analyze_requests_total) to track API usage.
+-Configured Prometheus to scrape metrics and connected Grafana for visualization.
+-Used queries like rate(...) to monitor real-time API traffic.
+-Understood how monitoring helps analyze system performance and behavior in production.
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
