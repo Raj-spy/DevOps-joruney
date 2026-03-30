@@ -11,7 +11,7 @@
 
 ```
 Phase 1: Linux/Docker Mastery
-████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░ Day 22/60
+████████████░░░░░░░░░░░░░░░░░░░░░░ Day 27/60
 ```
 
 | Phase | Days | Topics | Status |
@@ -267,12 +267,36 @@ Phase 1: Linux/Docker Mastery
 
 ---
 
-### 🗓️ Day 23 — Docker Compose + Redis Integration
+### 🗓️ Day 24 — Docker Compose + Redis Integration
 -Learned Git branching strategy (GitFlow) including feature, develop, and main branches for structured development. -Practiced rebase and squash to maintain a clean and linear commit history.
 -Built a monitoring setup using FastAPI, Prometheus, and Grafana. Exposed /metrics endpoint and created a custom -counter (analyze_requests_total) to track API usage.
 -Configured Prometheus to scrape metrics and connected Grafana for visualization.
 -Used queries like rate(...) to monitor real-time API traffic.
 -Understood how monitoring helps analyze system performance and behavior in production.
+
+---
+
+### 🗓️ Day 25 — GitHub Repo Setup + .gitignore & Security
+**Topics:** Repository hygiene, secret management, security best practices
+
+- Set up GitHub repository with proper structure
+- Created `.gitignore` to exclude sensitive files — `.env`, `venv/`, `__pycache__`, `.pyc`
+- Understood why secrets should never be committed to public repos (API keys, DB passwords)
+- Learned about secret leak risks and how to detect them early
+- Best practice: always add `.gitignore` before first commit
+
+---
+
+### 🗓️ Day 26 — GitHub Actions CI Pipeline (lint + test)
+**Topics:** CI/CD automation, YAML syntax, automated testing
+
+- Set up GitHub Actions workflow — triggers on every `push` and `pull_request`
+- Wrote CI pipeline in YAML: install dependencies → lint → test
+- Used `flake8` for linting and `pytest` for running tests automatically
+- Integrated Redis as a service inside the CI pipeline using `services:` block
+- Handled environment-based config using GitHub Actions `env:` variables
+- Debugged real CI errors from the Actions dashboard — red → green pipeline
+- Key learning: CI catches bugs before they reach main branch
 
 **Commands Used:**
 ```bash
