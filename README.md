@@ -298,6 +298,21 @@ Phase 1: Linux/Docker Mastery
 - Debugged real CI errors from the Actions dashboard — red → green pipeline
 - Key learning: CI catches bugs before they reach main branch
 
+---
+
+### 🗓️ Day 27 — GitHub Actions: Cache + Matrix Strategy
+**Topics:** Dependency caching, matrix builds, parallel testing
+
+- Added `actions/cache@v3` to cache pip dependencies using `requirements.txt` hash as cache key
+- Understood cache hit vs miss — cache hit skips `pip install`, saving 30–60s per run
+- Set up matrix strategy to test across Python 3.9 and 3.11 in parallel automatically
+- Each matrix job runs independently with its own cache — no conflicts between versions
+- Fixed a real bug: extra space in `~/ .cache/pip` path was breaking cache lookup
+- Debugged pipeline from red → green — both Python versions passing simultaneously
+- Key learning: Cache + Matrix = faster, more reliable CI without duplicate job definitions
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
