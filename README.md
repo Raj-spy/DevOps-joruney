@@ -313,6 +313,41 @@ Phase 1: Linux/Docker Mastery
 
 ---
 
+### 🗓️ Day 28 — Secrets Management + Artifacts
+Topics: GitHub Secrets, secure CI variables, artifact storage
+
+Learned difference between .env (local) vs GitHub Secrets (CI secure storage)
+Added repository secret (TEST_SECRET) and used it safely in workflow via ${{ secrets.* }}
+Understood masking (***) in logs — secrets are never exposed in CI output
+Fixed real issue: secret not loading due to incorrect setup → debugged using shell check
+Learned why .gitignore is not enough (secrets can leak via commit history)
+Implemented artifact upload using actions/upload-artifact@v4
+Faced real bug: artifact conflict in matrix → fixed using dynamic naming with ${{ matrix.python-version }}
+Debugged hidden file issue (.pytest_cache) and learned about include-hidden-files
+Final solution: stored test output (test-report.txt) as artifact for reliable debugging
+Key learning: Secure pipelines require proper secret handling + artifact tracking for debugging and reuse
+
+---
+
+### 🗓️ Day 29 — Docker Debug Lab: Layers + Optimization
+Topics: Docker layer caching, multi-stage builds, optimization, debugging
+
+Deeply understood Docker layers — each instruction creates a cached layer
+Learned how layer caching speeds up builds by avoiding re-installing dependencies
+Identified bad practice: COPY . . before installing dependencies breaks cache
+Optimized Dockerfile by copying requirements.txt first → install → then copy code
+Built advanced multi-stage Dockerfile (builder → tester → runner)
+Added test stage inside Docker (pytest) to ensure image correctness before runtime
+Implemented production best practices: slim image, non-root user, healthcheck
+Debugged critical issue: wrong dependency path (/root/.local vs /usr/local)
+Understood difference between build-time vs runtime errors in Docker
+Learned to use docker history for analyzing layers and image size
+Key learning: Proper layer ordering + multi-stage builds = faster, smaller, production-ready images
+
+---
+
+
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
