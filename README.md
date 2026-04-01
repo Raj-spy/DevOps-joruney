@@ -342,7 +342,7 @@ Implemented production best practices: slim image, non-root user, healthcheck
 Debugged critical issue: wrong dependency path (/root/.local vs /usr/local)
 Understood difference between build-time vs runtime errors in Docker
 Learned to use docker history for analyzing layers and image size
-Key learning: Proper layer ordering + multi-stage builds = faster, smaller, production-ready images
+Key learning: Proper layer ordering + multi-stage builds = faster, smaller, production-ready images + Caching
 
 ---
 
