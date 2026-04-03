@@ -346,7 +346,47 @@ Key learning: Proper layer ordering + multi-stage builds = faster, smaller, prod
 
 ---
 
+### 🗓️ Day 30 — CI/CD Pipeline + Docker Hub Integration
+Topics: GitHub Actions, CI/CD, Docker build & push, pipeline debugging
 
+Set up GitHub Actions workflow to automate CI/CD pipeline
+Understood CI (build + test) vs CD (delivery vs deployment) clearly
+Implemented pipeline trigger on push to main branch
+Built Docker image inside CI environment using docker build
+Learned authentication with Docker Hub using GitHub Secrets
+Used secure credentials (DOCKER_USERNAME, DOCKER_PASSWORD) in pipeline
+Tagged Docker image properly (username/myapp:latest)
+Pushed image to Docker Hub using docker push
+Debugged real CI/CD issues (auth errors, token scope, path issues)
+Understood difference between local Docker vs CI runner environment
+Learned that current pipeline is partial CD (image delivery, not deployment)
+Ran pulled image locally using docker run and verified app working
+Debugged real runtime issues (port conflicts, Docker engine issues)
+
+Key learning: CI/CD automates build + delivery, but real CD requires server deployment
+
+---
+
+### 🗓️ Day 31 — Image Security: Trivy Scanning + Vulnerability Fix
+Topics: Container security, vulnerability scanning, base image optimization
+
+Learned importance of securing Docker images before deployment
+Used Trivy to scan Docker images
+Identified OS-level and Python package vulnerabilities (HIGH, MEDIUM)
+Understood CVE (Common Vulnerabilities & Exposures) concept
+Reduced vulnerabilities drastically by switching base image (Debian → Alpine)
+Learned impact of base image on size, performance, and security
+Handled OS differences (apt vs apk, useradd vs adduser)
+Updated system packages to reduce vulnerabilities
+Tried upgrading Python dependencies and faced real dependency conflicts
+Understood dependency compatibility (FastAPI ↔ Starlette issue)
+Learned not to blindly upgrade packages — balance security vs stability
+Re-scanned image after fixes and compared results (before vs after)
+Accepted that 0 vulnerabilities is not realistic — focus on reducing HIGH/CRITICAL
+
+Key learning: Secure images require scanning, smart base image choice, and careful dependency management
+
+---
 
 **Commands Used:**
 ```bash
