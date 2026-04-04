@@ -407,6 +407,50 @@ Docker Swarm ensures high availability by maintaining desired state, automatical
 
 ---
 
+### 🗓️ Day 33–35 — Production-Ready Movie API Dockerization
+Topics: Production Docker image, CI/CD, healthchecks, debugging, deployment
+
+Converted FastAPI Movie API into a production-ready Docker image
+Replaced Uvicorn with Gunicorn + Uvicorn workers for production stability
+Implemented proper Dockerfile structure with optimized layers and non-root user
+Added healthcheck endpoint (/health) and configured Docker HEALTHCHECK
+Faced real issue: containers restarting continuously in Swarm
+Debugged using logs and identified healthcheck timing issue (too aggressive)
+Learned importance of start-period, interval, and retries in healthchecks
+Fixed restart loop by tuning healthcheck configuration
+Faced Docker Hub push error (denied: access) and fixed authentication issue
+Understood difference between local image vs registry image (Docker Hub)
+Built CI/CD pipeline using GitHub Actions to automatically:
+→ build Docker image
+→ login to Docker Hub
+→ push image
+
+Tested full pipeline end-to-end (code → build → push → pull → run)
+Learned difference between:
+
+docker build vs docker push vs docker pull vs docker run
+Understood that push does NOT deploy container — pull + run does
+
+Handled port conflict issue (address already in use) and learned proper port management
+Used Swarm for deployment and scaling (multi-replica setup)
+Tested self-healing behavior in production scenario
+Implemented rolling updates (start-first strategy) for zero downtime
+
+Understood difference between:
+
+manual deployment vs CI/CD automation
+single container vs orchestrated system
+💣 Key learnings:
+Production apps should use Gunicorn, not Uvicorn directly
+Healthchecks must be tuned — not too aggressive
+Always verify image push before deployment
+Swarm maintains system stability using desired state
+CI/CD automates build & push, but deployment can still be manual
+Never run multiple containers on same port
+Docker Hub acts as single source of truth for images
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
