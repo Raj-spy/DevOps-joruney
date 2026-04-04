@@ -388,6 +388,25 @@ Key learning: Secure images require scanning, smart base image choice, and caref
 
 ---
 
+### 🗓️ Day 32 — Docker Swarm (Single Node Setup & Basics)
+Topics: Container orchestration, Swarm mode, services, replicas, self-healing
+
+Learned what container orchestration means and why it is needed in production (managing multiple containers)
+Understood difference between docker run (single container) vs docker service (managed service)
+Initialized Docker Swarm on local machine using docker swarm init
+Created first Swarm service and deployed container using docker service create
+Learned concept of replicas and scaled service using docker service scale
+Observed how Swarm maintains desired state vs actual state
+Tested self-healing by manually killing containers and seeing automatic replacement
+Explored service lifecycle using docker service ps and docker service logs
+Understood internal load balancing across multiple replicas
+Learned that in Swarm we control services, not individual containers
+
+Key learning:
+Docker Swarm ensures high availability by maintaining desired state, automatically replacing failed containers, and distributing load across replicas
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
