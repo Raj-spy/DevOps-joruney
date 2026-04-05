@@ -467,6 +467,36 @@ Key learning: API documentation is critical in production systems, and hosting S
 
 ---
 
+### 🗓️ Day 37–42 — Milestone Review: Dockerized Movie API + CI Pipeline
+Topics: Project consolidation, production readiness, CI/CD improvement, debugging, architecture, interview preparation
+
+Reviewed and deeply understood complete project flow from request handling to deployment
+Strengthened understanding of FastAPI application structure, request validation, and response handling
+Analyzed Redis caching mechanism for performance optimization and reduced recomputation
+Explored Prometheus metrics integration for monitoring API usage and observability
+Revisited Docker concepts including image optimization, multi-stage builds, and non-root execution
+Understood production setup using Gunicorn with Uvicorn workers for better performance
+Improved CI pipeline using GitHub Actions with linting, testing, caching, and artifact storage
+Implemented Docker image versioning using Git commit SHA for traceability and rollback
+Learned importance of avoiding only “latest” tag and using versioned builds in production
+Practiced real-world debugging scenarios including:
+
+Healthcheck failures causing container restart loops
+Port conflicts during container startup
+Docker image mismatch and stale deployments
+Docker Hub authentication issues
+CI pipeline failures and log-based debugging
+
+Built strong understanding of Docker Swarm behavior including replicas, scaling, and self-healing
+Validated service reliability by simulating failures and observing automatic recovery
+Improved project structure, added .dockerignore, and cleaned unnecessary files
+Created professional README and documented architecture clearly for interview readiness
+Practiced explaining project end-to-end, including backend, DevOps flow, and deployment strategy
+
+Key learning: A production-ready system is not just about building features but ensuring reliability, observability, scalability, and proper CI/CD practices with strong debugging skills
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
