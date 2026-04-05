@@ -11,7 +11,7 @@
 
 ```
 Phase 1: Linux/Docker Mastery
-████████████░░░░░░░░░░░░░░░░░░░░░░ Day 27/60
+█████████░░░░░░░░░░░░░░░░░░░░░░ Day 35/180
 ```
 
 | Phase | Days | Topics | Status |
@@ -448,6 +448,22 @@ Swarm maintains system stability using desired state
 CI/CD automates build & push, but deployment can still be manual
 Never run multiple containers on same port
 Docker Hub acts as single source of truth for images
+
+---
+
+### 🗓️ Day 36 — GitHub Pages for API Documentation (Swagger Auto)
+Topics: API documentation, OpenAPI schema, Swagger UI, static hosting
+
+Learned how to generate OpenAPI schema automatically from FastAPI application
+Understood how Swagger UI works as an interactive API documentation interface
+Created static Swagger UI using openapi.json and custom index.html
+Configured project structure to serve API docs via static files
+Hosted API documentation using GitHub Pages from repository
+Understood difference between dynamic docs (/docs in FastAPI) and static hosted docs
+Learned importance of API documentation for developer experience and integration
+Exposed public documentation URL for external usage without running backend
+
+Key learning: API documentation is critical in production systems, and hosting Swagger UI via GitHub Pages allows easy access and sharing without requiring the backend to be live
 
 ---
 
