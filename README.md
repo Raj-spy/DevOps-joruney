@@ -497,6 +497,28 @@ Key learning: A production-ready system is not just about building features but 
 
 ---
 
+### 🗓️ Day 43 — 43: Minikube install + kubectl config
+topics: Set up a local Kubernetes cluster using Minikube and learned basic Pod operations with kubectl.
+
+We set up a local Kubernetes cluster using Minikube with the Docker driver.
+We understood that Minikube runs a single-node Kubernetes cluster inside a Docker container.
+We learned that kubectl is a client tool that communicates with the Kubernetes API Server.
+We explored the internal flow: kubectl → API Server → Node → Pod → Container.
+We created a Pod using kubectl run and observed its lifecycle states.
+We debugged real issues like cluster not running, Docker not started, and API server connection errors.
+We analyzed Pod details using kubectl describe and understood restart behavior.
+
+
+Key Learnings
+Kubernetes does not manage containers directly; it manages Pods.
+Minikube provides a local environment to simulate a real Kubernetes cluster.
+kubectl always interacts with the API Server, not directly with Pods.
+A Pod is the smallest deployable unit and can contain one or more containers.
+Container restarts can happen due to node issues or crashes, and Kubernetes auto-heals them.
+Debugging flow: kubectl get pods → describe → logs.
+Infrastructure must be running (Docker, cluster) before using kubectl.
+
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
