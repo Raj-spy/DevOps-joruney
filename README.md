@@ -518,6 +518,28 @@ Container restarts can happen due to node issues or crashes, and Kubernetes auto
 Debugging flow: kubectl get pods → describe → logs.
 Infrastructure must be running (Docker, cluster) before using kubectl.
 
+---
+
+### 🗓️ Day 44 — Pods Deep (YAML, Logs, Exec, Events Debug)
+Topics: YAML declarative system, kubectl logs, kubectl exec, kubectl describe, events, debugging flow
+
+Understood that YAML defines desired state — Kubernetes ensures that state is always maintained
+Learned YAML structure: metadata (Pod identity — name, labels) and spec (desired config — container, image)
+Understood that YAML is source of truth, stored in Git, applied via CI/CD
+Created a Pod using YAML file and applied it with kubectl apply -f
+Learned kubectl logs to check application output and debug startup or runtime issues
+Used kubectl logs -f for real-time streaming and --previous for crashed container logs
+Used kubectl exec -it pod-name -- /bin/sh to enter running container for deep inspection
+Understood exec is for debugging only — not for permanent fixes inside container
+Learned kubectl describe pod to see Kubernetes-level events (scheduling, image pull, probe status)
+Understood difference between logs (app behavior) and events (system actions)
+Practiced full debugging flow: get pods → describe → logs → exec
+Understood that these 4 tools solve 70-80% of real production Pod issues
+
+Key learning:
+YAML defines the system, Kubernetes maintains it, logs show application behavior, events show system actions, and exec allows deep runtime inspection — together these form the core Pod debugging toolkit in production
+
+---
 
 **Commands Used:**
 ```bash
