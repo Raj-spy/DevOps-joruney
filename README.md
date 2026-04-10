@@ -541,6 +541,22 @@ YAML defines the system, Kubernetes maintains it, logs show application behavior
 
 ---
 
+### Day 45: Deployments + rolling updates
+Topics: Deployment management, replicas, self-healing, rolling updates
+
+Created a Deployment using YAML to manage multiple Pods instead of using standalone Pods
+Used replicas to maintain desired number of Pods (e.g., always keep 2 Pods running)
+Understood that Deployment automatically recreates Pods if they are deleted (self-healing)
+Learned how selector and template are used to identify and create Pods
+Observed that Pods created by Deployment have dynamic names and are managed automatically
+Performed a rolling update by modifying the container image and reapplying the YAML
+Verified that Pods were updated one by one without downtime (zero-downtime deployment)
+Used kubectl rollout status to track deployment progress
+Key learning: Deployment ensures availability and stability, while rolling updates enable safe and seamless updates in production
+
+---
+
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
