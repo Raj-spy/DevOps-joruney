@@ -556,6 +556,33 @@ Key learning: Deployment ensures availability and stability, while rolling updat
 
 ---
 
+### Day 46: Services (ClusterIP, NodePort, Selectors)
+
+Topics: Service networking, stable IP, load balancing, internal vs external communication
+
+Created a Service using YAML to expose Pods managed by Deployment and enable network access
+Understood that Pods have dynamic IPs, so Service provides a stable IP and DNS for communication
+Learned that Service uses labels and selectors to identify and connect to the correct Pods
+Observed that Service automatically distributes traffic across multiple Pods (basic load balancing)
+Explored different types of Services:
+
+ClusterIP → used for internal communication within the cluster
+NodePort → used to expose application externally via node IP and port
+LoadBalancer → used in cloud environments for external access
+
+Understood the difference between:
+
+port → the port exposed by the Service
+targetPort → the port on which the container (application) is running
+
+Learned how Services enable communication between microservices using DNS names (e.g., FastAPI connecting to Redis via service name)
+Integrated multiple components (FastAPI + Redis) using Services for internal communication
+
+Key learning:
+Service provides a stable networking layer and load balancing mechanism, allowing applications to communicate reliably despite dynamic Pod lifecycle
+
+---
+
 
 **Commands Used:**
 ```bash
