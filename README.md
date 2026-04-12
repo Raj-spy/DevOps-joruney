@@ -601,6 +601,25 @@ Key learning: Applications should be environment-independent, and configuration 
 
 ---
 
+### 🗓️ Day 48 — Deploy Movie API to Minikube
+
+Topics: End-to-end deployment, Kubernetes resources, DockerHub integration, service exposure
+
+Deployed Dockerized FastAPI Movie API to Kubernetes cluster using Minikube
+Used Docker image from DockerHub in Deployment YAML to run application inside Pods
+Created a Deployment for Movie API to manage Pods and ensure availability
+Created a NodePort Service to expose the application externally
+Verified that Kubernetes automatically pulls image from DockerHub when Pod is created
+Created separate Redis Deployment and ClusterIP Service for internal communication
+Connected FastAPI with Redis using service name (redis) as hostname inside cluster
+Understood complete microservice architecture in Kubernetes (API + Redis)
+Started and accessed application using minikube service for external access
+Verified application endpoints (/health, /analyze) after deployment
+Observed full request flow: User → Service → Pod → FastAPI → Redis → Response
+Key learning: Successfully deployed a real-world microservice application on Kubernetes using Deployments, Services, and internal service communication
+
+---
+
 
 **Commands Used:**
 ```bash
