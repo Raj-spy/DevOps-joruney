@@ -583,6 +583,24 @@ Service provides a stable networking layer and load balancing mechanism, allowin
 
 ---
 
+### 🗓️ Day 47 — ConfigMaps & Secrets (Configuration Management)
+
+Topics: Environment variables, ConfigMap, Secret, base64 encoding, runtime config injection
+
+Understood problem of hardcoded configuration (e.g., REDIS_HOST) and why it should be avoided
+Learned that configuration should be separated from code using environment variables
+Created a ConfigMap to store non-sensitive configuration (e.g., REDIS_HOST=redis)
+Injected ConfigMap values into containers using environment variables in Deployment YAML
+Understood flow: ConfigMap → Deployment → Pod → Container → Application
+Learned that Docker images do not contain environment-specific configuration; config is injected at runtime
+Understood that .env files are used only for local development and not in production
+Learned about Secrets for storing sensitive data (passwords, API keys)
+Understood that Secrets store values in base64 encoded format (not encryption, only encoding)
+Injected Secret values into containers similar to ConfigMap using secretKeyRef
+Key learning: Applications should be environment-independent, and configuration should be dynamically injected using ConfigMaps and Secrets at runtime
+
+---
+
 
 **Commands Used:**
 ```bash
