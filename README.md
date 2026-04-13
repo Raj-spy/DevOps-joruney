@@ -638,6 +638,21 @@ Key learning: PersistentVolumes enable stateful applications in Kubernetes by pr
 
 ---
 
+### 🗓️ Day 50 — Ingress Controller + Host Routing
+
+Topics: Ingress, domain routing, reverse proxy, service exposure
+
+Understood limitations of NodePort (non-user-friendly URLs and manual port usage)
+Learned that Ingress provides domain-based routing for services
+Enabled Ingress controller in Minikube to handle incoming HTTP traffic
+Created Ingress resource to map domain (movie.local) to internal service (movie-service)
+Configured host-based routing using rules in Ingress YAML
+Updated local hosts file to map domain to localhost
+Accessed application using custom domain instead of IP and port
+Understood request flow: User → Domain → Ingress → Service → Pod
+Key learning: Ingress acts as a reverse proxy and enables production-ready routing using domains
+
+---
 
 **Commands Used:**
 ```bash
