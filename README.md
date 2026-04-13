@@ -621,6 +621,24 @@ Key learning: Successfully deployed a real-world microservice application on Kub
 ---
 
 
+### 🗓️ Day 49 — Persistent Volumes & Claims (Redis Data Persistence)
+
+Topics: Stateful storage, PV, PVC, volume mounts, data persistence
+
+Understood that Pods are ephemeral and data stored inside containers is lost when Pod is deleted
+Identified need for persistent storage for stateful services like Redis
+Created PersistentVolume (PV) to define storage on the node using hostPath
+Created PersistentVolumeClaim (PVC) to request and bind storage from PV
+Learned that PVC binds to PV based on storage size, access mode, and storage class
+Mounted PVC inside Redis container using volumeMounts (/data)
+Connected Redis with persistent storage instead of container memory
+Tested persistence by inserting data into Redis, deleting Pod, and verifying data still exists
+Observed full flow: Pod → PVC → PV → Node storage
+Key learning: PersistentVolumes enable stateful applications in Kubernetes by preserving data beyond Pod lifecycle
+
+---
+
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
