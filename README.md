@@ -654,6 +654,26 @@ Key learning: Ingress acts as a reverse proxy and enables production-ready routi
 
 ---
 
+### 🗓️ Day 51 — HPA (CPU/Memory Auto-Scaling)
+Topics: Horizontal scaling, HPA, metrics-server, resource requests/limits, auto-scaling behavior
+
+Understood the limitation of fixed replicas in Deployment (static scaling problem)
+Learned that HPA (Horizontal Pod Autoscaler) automatically scales Pods based on CPU/Memory usage
+Understood difference between horizontal scaling (multiple Pods) and vertical scaling (same Pod resources increase)
+Enabled Metrics Server in Minikube to provide real-time resource usage data
+Added CPU requests and limits in Deployment to allow HPA to calculate scaling decisions
+Created HPA using kubectl autoscale with target CPU utilization (e.g., 50%)
+Observed HPA status using kubectl get hpa (current vs target CPU usage)
+Generated load using a busybox container to simulate real traffic
+Verified automatic scaling: Pods increased as CPU usage crossed threshold
+Observed max replica limit behavior (scaling stops at defined max limit)
+Tested scale down when load was removed (system returned to minimum Pods)
+Understood real limitation: HPA only scales Pods, not infrastructure (nodes)
+Learned that cluster autoscaling is required when node capacity is exhausted
+
+Key Learning = HPA enables dynamic scaling of applications based on load, but must be combined with proper resource limits and infrastructure scaling (Cluster Autoscaler) for full production readiness.
+
+---
 **Commands Used:**
 ```bash
 docker-compose up -d --build
