@@ -692,6 +692,29 @@ Explored real production workflow and difference between manual deployment vs Gi
 Key learning: A complete DevOps workflow involves automated testing, versioned Docker builds, and controlled Kubernetes deployments with rolling updates and rollback capability
 
 ---
+
+### 🗓️Day 53 — Resource Requests & Limits Validation (Performance + Stability)
+
+Topics: Kubernetes resources, CPU/memory management, load testing, metrics validation
+
+Learned concept of resource requests (minimum required) and limits (maximum allowed) in Kubernetes Understood how scheduler uses requests for pod placement and limits enforce resource control
+
+Added CPU and memory configuration in deployment YAML and validated using kubectl describe pod Used kubectl top pods (metrics-server) to monitor real-time CPU and memory usage
+
+Performed load testing using repeated API calls (curl loop) to simulate traffic Observed how CPU usage increases with load while memory remains relatively stable
+
+Identified risk of memory nearing request limits and understood possibility of OOMKilled errors Learned how to adjust resource values based on real usage instead of guessing
+
+Understood production strategy for resource tuning:
+
+requests ≈ average usage
+limits > peak usage
+
+Connected resource configuration with HPA behavior (autoscaling depends on requests)
+
+Key learning: Resource tuning should be based on real metrics and load testing, ensuring application stability, efficient scheduling, and prevention of crashes in production systems
+
+---
 **Commands Used:**
 ```bash
 docker-compose up -d --build
