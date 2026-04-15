@@ -674,6 +674,24 @@ Learned that cluster autoscaling is required when node capacity is exhausted
 Key Learning = HPA enables dynamic scaling of applications based on load, but must be combined with proper resource limits and infrastructure scaling (Cluster Autoscaler) for full production readiness.
 
 ---
+
+### 🗓️Day 52 — Debugging CrashLoop + CI/CD Pipeline (Docker → Kubernetes)
+
+Topics: Kubernetes debugging, CrashLoopBackOff, CI/CD, DockerHub, deployment automation
+
+Learned how to debug Kubernetes pods using kubectl describe, kubectl logs, and events Understood common causes of CrashLoopBackOff like wrong env variables, dependency failure, and application errors Practiced identifying root cause using logs and fixing configuration issues
+
+Built complete CI/CD pipeline using GitHub Actions for automation Configured pipeline to run linting and pytest with Redis service integration Understood importance of testing stage before deployment to prevent broken releases
+
+Automated Docker image build and push to DockerHub using commit SHA-based versioning Learned why immutable tagging (SHA) is better than latest for traceability and rollback
+
+Deployed updated application to Kubernetes using kubectl set image Understood how Kubernetes automatically pulls images and performs rolling updates Verified deployment using rollout status, pod inspection, and API testing
+
+Explored real production workflow and difference between manual deployment vs GitOps tools like Argo CD
+
+Key learning: A complete DevOps workflow involves automated testing, versioned Docker builds, and controlled Kubernetes deployments with rolling updates and rollback capability
+
+---
 **Commands Used:**
 ```bash
 docker-compose up -d --build
