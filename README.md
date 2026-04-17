@@ -715,6 +715,38 @@ Connected resource configuration with HPA behavior (autoscaling depends on reque
 Key learning: Resource tuning should be based on real metrics and load testing, ensuring application stability, efficient scheduling, and prevention of crashes in production systems
 
 ---
+
+### 🗓️Day 54 — Namespace Isolation + RBAC (Access Control)
+
+Topics: Namespace, resource isolation, service discovery, RBAC, Role, RoleBinding, ServiceAccount
+
+Understood that Namespaces provide logical isolation of resources within a Kubernetes cluster
+Created separate namespace (dev) for environment isolation
+Deployed application in dev namespace and verified resource separation from default namespace
+Learned that resources like Pods, Services, Deployments are namespace-scoped while Nodes and PV are cluster-level
+Understood that Namespace does not provide network isolation by default
+Explored service discovery: same namespace → direct service name access
+Learned cross-namespace communication requires full DNS (service.namespace.svc.cluster.local)
+Identified dependency issue (Redis) due to namespace isolation and understood proper deployment strategy
+
+Learned RBAC (Role-Based Access Control) for managing permissions in Kubernetes
+Understood RBAC defines who can perform what actions on which resources
+Implemented RBAC using Role and RoleBinding for fine-grained access control
+Created Role with read-only permissions (get, list pods)
+Created ServiceAccount for local RBAC testing
+Configured RoleBinding to assign permissions to ServiceAccount
+Verified permissions using kubectl auth can-i with --as flag
+Understood RBAC flow: Request → Identity → RoleBinding → Role → Allow/Deny
+Learned difference between User (external) vs ServiceAccount (internal) and apiGroup usage
+Observed limitation in Minikube where default admin context bypasses RBAC restrictions
+
+Key Learning = Namespaces provide isolation of resources, while RBAC enforces access control. Together they enable secure, multi-environment Kubernetes deployments with proper permission management.
+
+Result = Achieved secure, isolated, and controlled Kubernetes environment with namespace-based separation and RBAC policies
+
+---
+
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
