@@ -746,6 +746,34 @@ Result = Achieved secure, isolated, and controlled Kubernetes environment with n
 
 ---
 
+### 🗓️ Day 55 — K9s + Debugging + Storage (PVC/PV)
+
+Topics: K9s dashboard, real-time debugging, pod scheduling issues, PVC/PV, storage isolation
+
+Learned how K9s provides a terminal-based dashboard for real-time Kubernetes monitoring and debugging
+Explored K9s commands for faster navigation (namespace switch, logs, describe, exec)
+Understood limitations of kubectl and benefits of K9s for live debugging
+
+Debugged real production-like issue where Redis pod failed to schedule
+Identified error using K9s: PersistentVolumeClaim (redis-pvc) not found
+Understood that pod scheduling fails if required storage (PVC) is missing
+
+Learned that PersistentVolumeClaim (PVC) is namespace-scoped and must exist in the same namespace as the pod
+Understood difference between PVC (storage request) and PV (actual storage resource)
+Explored storage flow: Pod → PVC → PV → mounted storage
+
+Resolved issue by creating PVC in dev namespace and verified binding (Bound state)
+Confirmed successful pod scheduling and application recovery
+
+Understood difference between memory (runtime, temporary) and storage (persistent data)
+Learned that memory has limits and can cause OOMKilled, while PVC defines fixed storage allocation
+
+Applied production best practices: deploy application, database, and storage within the same namespace for proper isolation
+
+Key Learning = K9s enables fast and efficient debugging, while proper understanding of PVC/PV and namespace-scoped storage is critical to resolve real-world Kubernetes scheduling issues
+
+---
+
 
 **Commands Used:**
 ```bash
