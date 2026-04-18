@@ -774,6 +774,29 @@ Key Learning = K9s enables fast and efficient debugging, while proper understand
 
 ---
 
+### 🗓️ Day 56 — Velero (Backup & Restore + PVC Data)
+
+Topics: Velero, backup strategy, restore flow, object storage, PVC snapshots, disaster recovery
+
+Learned how Velero is used for backup and restore of Kubernetes clusters and applications
+Understood real-world problem of data loss due to cluster failure, accidental deletion, or node crashes
+Explored production architecture where Velero runs inside cluster and stores backups in object storage (S3/GCS/Azure)
+Learned that backups include both Kubernetes resources (pods, deployments, services, configmaps, secrets) and persistent data (PVC)
+
+Understood complete backup flow: Velero collects cluster resources, takes PVC snapshots, and stores them in object storage
+Learned restore flow: Velero recreates resources, reattaches volumes, and restores application with data
+Explored different backup types: full cluster backup, namespace-level backup, and scheduled automatic backups
+Understood importance of scheduled backups for production systems
+
+Learned that PVC backup is critical because it stores application data (e.g., database), and without it data loss occurs
+Explored two PVC backup methods: volume snapshots (cloud disk level) and file-level backup (Restic)
+Understood difference between backup (saving state) and restore (recovering state)
+
+Analyzed real production scenario: accidental deletion of production database and recovery using Velero restore
+Learned best practices: frequent backups, separate storage location, and periodic restore testing
+
+---
+
 
 **Commands Used:**
 ```bash
