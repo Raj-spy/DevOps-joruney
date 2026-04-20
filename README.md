@@ -820,6 +820,10 @@ Used port-forwarding to validate application functionality as a workaround
 
 Learned real-world limitation of local Kubernetes environments and importance of networking understanding
 
+🎯 Key Learning
+
+Ingress routing was correctly configured, but local environment networking limitations prevented external access, highlighting the importance of understanding Kubernetes networking and debugging strategies
+
 ---
 
 
