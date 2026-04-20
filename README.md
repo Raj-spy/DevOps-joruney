@@ -797,6 +797,31 @@ Learned best practices: frequent backups, separate storage location, and periodi
 
 ---
 
+🗓️ Day 57–60 — Phase 1 Complete: Movie API on Kubernetes + Ingress
+
+Topics: Ingress routing, service exposure, domain mapping, debugging, networking limitations
+
+Learned how to expose applications using Ingress instead of NodePort for production-style routing
+Converted service type from NodePort to ClusterIP for ingress compatibility
+Configured NGINX Ingress with host-based routing (movie.local → movie-service)
+Enabled ingress controller in Minikube and validated ingress resource
+
+Configured local domain mapping using /etc/hosts to simulate real DNS routing
+Verified request flow: Domain → Ingress → Service → Pods → Application
+
+Debugged service update issue and understood need to recreate service for type changes
+Resolved ingress conflict caused by duplicate host/path definitions across namespaces
+Fixed DNS resolution issues for custom domain access
+
+Investigated ingress accessibility issue despite correct configuration
+Identified root cause as network isolation between WSL and Minikube (docker driver)
+Understood difference between configuration issues and environment/network limitations
+Used port-forwarding to validate application functionality as a workaround
+
+Learned real-world limitation of local Kubernetes environments and importance of networking understanding
+
+---
+
 
 **Commands Used:**
 ```bash
