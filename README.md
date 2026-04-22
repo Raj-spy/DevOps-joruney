@@ -11,15 +11,15 @@
 
 ```
 Phase 1: Linux/Docker Mastery
-█████████░░░░░░░░░░░░░░░░░░░░░░ Day 35/180
+█████████░░░░░░░░░ Day 35/180
 ```
 
 | Phase | Days | Topics | Status |
 |-------|------|---------|--------|
 | Phase 1 | 1–14 | Linux Debugging Deep Dive | ✅ Complete |
-| Phase 1 | 15–23 | Docker + Git Production | 🔄 In Progress |
-| Phase 1 | 24–42 | Advanced Docker + Projects | ⏳ Upcoming |
-| Phase 2 | 43–60 | Kubernetes + CI/CD | ⏳ Upcoming |
+| Phase 1 | 15–23 | Docker + Git Production | ✅ Complete |
+| Phase 1 | 24–42 | Advanced Docker + Projects | ✅ Complete |
+| Phase 2 | 43–60 | Kubernetes + CI/CD | ⏳ In progress |
 
 ---
 
