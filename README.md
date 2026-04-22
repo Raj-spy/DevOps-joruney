@@ -826,6 +826,90 @@ Ingress routing was correctly configured, but local environment networking limit
 
 ---
 
+🚀 Phase 2 Start
+🗓️ Day 61 — GitHub Actions Reusable Workflows
+
+Topics: Reusable workflows, workflow_call, inputs, matrix strategy, job dependencies (needs), conditional execution (always/failure/success), CI/CD modular design
+
+Understood the problem of duplication in CI/CD (same pipeline repeated across multiple repositories)
+
+Learned that reusable workflows allow writing CI/CD logic once and reusing it across multiple workflows or repositories
+
+Understood that reusable workflows must be defined inside .github/workflows/ directory
+
+Learned that workflow_call is required to make a workflow reusable (acts as entry point)
+
+Understood that caller workflow uses uses: to trigger reusable workflow execution
+
+Learned that actual execution (jobs + steps + runner) happens inside reusable workflow, not caller
+
+Understood the concept of inputs to make reusable workflows dynamic (e.g., python-version, image-name)
+
+Learned difference between .github/workflows/ (workflows) and .github/actions/ (composite actions)
+
+Understood matrix strategy to run same job across multiple configurations (e.g., Python 3.9 and 3.11)
+
+Learned that matrix helps avoid duplication and improves scalability of pipelines
+
+Understood job dependency using needs to control execution order (test → build → deploy)
+
+Learned that if a job fails, dependent jobs are skipped by default
+
+⚙️ Control Logic (Critical Understanding)
+
+Learned continue-on-error makes a step/job non-blocking (failure ignored, pipeline continues)
+
+Learned if: always() ensures a job/step runs regardless of previous failures (used for logs, cleanup)
+
+Learned if: failure() runs only when previous job fails (used for debugging/log collection)
+
+Learned if: success() runs only when previous jobs succeed (used for deployment)
+
+Understood difference between execution control (if) vs failure handling (continue-on-error)
+
+🧪 Practical Implementation
+
+Converted existing CI pipeline into reusable workflow (reusable-test.yml)
+
+Moved CI logic (cache, lint, test, artifacts) into reusable workflow
+
+Created main workflow (main.yml) to call reusable workflow using uses
+
+Implemented matrix strategy in caller workflow for multiple Python versions
+
+Debugged common error: “workflow not found” due to incorrect path (.github/actions/ vs .github/workflows/)
+
+Verified reusable workflow execution and job structure in GitHub Actions UI
+
+🧠 Pipeline Design Thinking
+
+Understood importance of modular pipelines (separating test, build, scan workflows)
+
+Learned that reusable workflows improve scalability, maintainability, and standardization
+
+Understood difference between development pipeline (flexible, fast feedback) and production pipeline (strict quality gates)
+
+Learned when to allow failures (dev stage) vs enforce strict checks (production)
+
+🔥 Real Production Insights
+
+Reusable workflows are used in centralized DevOps repositories and shared across multiple microservices
+
+CI/CD pipelines are modular and not monolithic (test, build, deploy separated)
+
+Logging and artifacts must be preserved even on failure using if: always()
+
+Deployment should always be controlled using if: success() to prevent unstable releases
+
+🎯 Key Learning
+
+Reusable workflows enable scalable and maintainable CI/CD by centralizing common logic, reducing duplication, and allowing flexible pipeline control using inputs, matrix, dependencies, and conditional execution.
+
+- Understood production mindset: secret scanning → image scanning (Trivy) → 
+  commit hash tagging → automatic rollback using `kubectl rollout undo`
+
+---
+
 
 **Commands Used:**
 ```bash
