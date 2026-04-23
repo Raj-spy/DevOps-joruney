@@ -908,6 +908,14 @@ Reusable workflows enable scalable and maintainable CI/CD by centralizing common
 - Understood production mindset: secret scanning → image scanning (Trivy) → 
   commit hash tagging → automatic rollback using `kubectl rollout undo`
 
+# Day 61 Revision (CI/CD Reusable Workflows)
+
+- Revised workflow_call and uses
+- Understood reusable workflow execution model
+- Reviewed matrix strategy and needs dependency
+- Practiced conditional execution (always, failure, success)
+- Strengthened CI/CD modular design understanding
+
 ---
 
 
