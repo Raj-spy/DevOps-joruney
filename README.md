@@ -827,7 +827,7 @@ Ingress routing was correctly configured, but local environment networking limit
 ---
 
 🚀 Phase 2 Start
-🗓️ Day 61 — GitHub Actions Reusable Workflows
+### 🗓️ Day 61 — GitHub Actions Reusable Workflows
 
 Topics: Reusable workflows, workflow_call, inputs, matrix strategy, job dependencies (needs), conditional execution (always/failure/success), CI/CD modular design
 
@@ -917,6 +917,68 @@ Reusable workflows enable scalable and maintainable CI/CD by centralizing common
 - Strengthened CI/CD modular design understanding
 
 ---
+
+### 🗓️ Day 62 — Secrets + OIDC (AWS Authentication)
+
+Topics: AWS authentication, access keys vs OIDC, IAM roles, trust policy, OIDC token flow, temporary credentials, CI/CD security
+Understood the problem of authenticating GitHub Actions with AWS for deployment and infrastructure access
+Learned traditional method using AWS access keys (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY) and its limitations (long-lived, security risk, manual rotation)
+Understood that storing secrets in CI/CD pipelines can lead to leakage and compromise
+Learned that OIDC (OpenID Connect) is a modern and secure way to authenticate without storing long-term credentials
+Understood that OIDC provides temporary, short-lived credentials instead of permanent keys
+
+🔐 Core Concepts
+
+Understood that GitHub generates an OIDC token during workflow execution as proof of identity
+Learned that AWS IAM Role is used to define permissions (what actions are allowed)
+Understood that Trust Policy defines who can assume the IAM role (e.g., specific GitHub repo and branch)
+Learned that GitHub uses AssumeRoleWithWebIdentity to request access from AWS
+Understood that AWS verifies the OIDC token and trust policy before granting access
+Learned that temporary credentials are issued by AWS and expire automatically after a short duration
+
+🔁 OIDC Flow (Step-by-step)
+GitHub workflow runs → OIDC token generated → request sent to AWS → IAM role assumed → temporary credentials issued → CI/CD task executed → credentials expire
+
+⚙️ GitHub Implementation
+
+Learned that permissions: id-token: write is required to allow OIDC token generation
+Used aws-actions/configure-aws-credentials@v4 to configure AWS authentication via OIDC
+Understood that no AWS secrets are required when using OIDC
+
+🧠 Key Understanding
+
+Understood that OIDC is used only during CI/CD execution (build/deploy), not during application runtime
+Clarified that once the application is deployed, it continues running independently without needing OIDC
+Learned that each workflow run generates fresh credentials (no persistent login)
+
+🔥 Security Insights
+
+Understood that OIDC is more secure than access keys due to:
+
+no stored credentials
+short-lived access
+reduced attack surface
+
+Learned that security depends on proper configuration:
+strict trust policy (repo + branch restriction)
+least privilege IAM role
+protected GitHub branches
+Understood that even if credentials are compromised, their short lifespan limits damage
+
+⚠️ Risk Awareness
+
+Learned that if GitHub repository is compromised, attacker can trigger workflows and gain temporary AWS access
+Understood that giving excessive permissions (e.g., AdministratorAccess) to IAM role makes system dangerous even with OIDC
+
+🧠 Production Thinking
+
+OIDC is widely used in production as it eliminates secret management and improves security
+CI/CD pipelines should use temporary credentials and least privilege access
+Authentication should be event-based (per workflow run), not persistent
+
+🎯 Key Learning
+
+OIDC enables secure, scalable, and secret-free authentication between GitHub Actions and AWS by using temporary credentials, IAM roles, and strict trust policies, making it the industry standard for production CI/CD pipelines.
 
 
 **Commands Used:**
