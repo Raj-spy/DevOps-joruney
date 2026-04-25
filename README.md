@@ -980,6 +980,59 @@ Authentication should be event-based (per workflow run), not persistent
 
 OIDC enables secure, scalable, and secret-free authentication between GitHub Actions and AWS by using temporary credentials, IAM roles, and strict trust policies, making it the industry standard for production CI/CD pipelines.
 
+📋 Practical Log
+Date: 25 April 2026
+Topic: GitHub Actions + OIDC + AWS ECR CI/CD Pipeline
+
+🎯 Goal Achieved
+Set up a keyless CI/CD pipeline where GitHub Actions automatically builds and pushes a Docker image to AWS ECR — without any static access keys.
+
+🛠️ What I Did:
+1. ECR Repository
+
+Used existing movie-api repository on AWS ECR
+
+2. OIDC Provider
+
+token.actions.githubusercontent.com configured in IAM Identity Providers
+Audience: sts.amazonaws.com
+
+3. IAM Role
+
+Created role: github-oidc-role
+Trusted entity: Web Identity (GitHub OIDC)
+Permission attached: AmazonEC2ContainerRegistryFullAccess
+Trust Policy restricted to only your repo's main branch
+
+4. GitHub Actions Workflow
+
+File: .github/workflows/ecr.yml
+Trigger: push to main branch
+Steps: checkout → AWS login via OIDC → ECR login → Docker build → tag → push
+
+
+🔐 How Authentication Worked:
+Code push to main
+      ↓
+GitHub generates JWT token
+      ↓
+AWS verifies token via OIDC provider
+      ↓
+Trust Policy check passes
+      ↓
+Temporary credentials issued (1 hour validity)
+      ↓
+Docker image pushed to ECR ✅
+
+💡 Key Learnings:
+
+OIDC eliminates the need for static AWS access keys in CI/CD
+Trust Policy acts as a security gate — only specific repo/branch can assume the role
+Temporary credentials expire automatically — more secure than long-lived keys
+GitHub Actions id-token: write permission is required for OIDC to work
+
+---
+
 
 **Commands Used:**
 ```bash
