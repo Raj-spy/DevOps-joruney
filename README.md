@@ -1033,6 +1033,103 @@ GitHub Actions id-token: write permission is required for OIDC to work
 
 ---
 
+### 🗓️ Day 63 — Helm Chart Creation (Movie API)
+
+Topics: Helm basics, chart structure, values.yaml, templating, multi-resource deployment, environment configs, rollback, production practices
+
+Understood the limitation of static Kubernetes YAML (duplication, manual updates, poor scalability)
+
+Learned that Helm is a Kubernetes package manager used for templating, packaging, and managing deployments
+
+Understood core concept: Helm chart = blueprint, values.yaml = configuration
+
+🧠 Helm Structure
+
+Created Helm chart using:
+
+helm create movie-api
+
+Understood structure:
+
+Chart.yaml (metadata)
+values.yaml (central config)
+templates/ (dynamic Kubernetes manifests)
+⚙️ Implementation (Movie API)
+
+Converted existing Kubernetes YAML into Helm templates:
+
+Deployment → dynamic replicas, image, ports, env
+Service → dynamic type and ports
+Ingress → dynamic host routing
+
+Added Redis as a dependency:
+
+Redis Deployment + Service added inside Helm chart
+Configured via values.yaml (redis.enabled, redis.host)
+🔧 values.yaml (Control Center)
+
+Centralized all configs:
+
+replicaCount
+image (repo + tag)
+ports (service + container)
+Redis config
+environment variables
+
+Enabled dynamic templating using:
+
+{{ .Values.* }}
+🔁 Deployment Operations
+Install:
+helm install movie-api .
+Upgrade:
+helm upgrade movie-api .
+Rollback:
+helm rollback movie-api <revision>
+🌍 Environment Management
+
+Used separate values files for environments:
+
+values-dev.yaml
+values-staging.yaml
+values-prod.yaml
+
+Same chart → different configurations per environment
+
+🔥 Key Benefits
+Reduced duplication of YAML files
+Centralized configuration
+Easy updates via values.yaml
+Reusable deployment across services
+Built-in rollback support
+⚠️ Risks & Safety
+
+Identified risks:
+
+wrong values → system break
+shared chart → multi-service impact
+
+Mitigation:
+
+staging environment testing
+CI/CD controlled deployment
+environment-specific values files
+Helm rollback
+🧠 Production Thinking
+
+Helm is used as a deployment layer in CI/CD pipelines (not automation tool itself)
+
+Standard production flow:
+CI/CD → Helm → Kubernetes
+
+Use of versioned charts, staging validation, and rollback ensures safe deployments
+
+🎯 Key Learning
+
+Helm enables scalable, reusable, and configurable Kubernetes deployments by converting static manifests into dynamic templates controlled via centralized values, making it essential for managing multi-service production systems.
+
+---
+
 
 **Commands Used:**
 ```bash
