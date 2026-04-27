@@ -1128,6 +1128,21 @@ Use of versioned charts, staging validation, and rollback ensures safe deploymen
 
 Helm enables scalable, reusable, and configurable Kubernetes deployments by converting static manifests into dynamic templates controlled via centralized values, making it essential for managing multi-service production systems.
 
+
+debug: fix image deployment issue in Kubernetes pipeline
+
+- Observed old image running despite successful CI/CD
+- Verified pod image using kubectl describe
+- Identified ImagePullBackOff with "no basic auth credentials"
+- Root cause: Kubernetes (Minikube) could not authenticate with private ECR
+- Switched registry from ECR to DockerHub for testing
+- Updated CI/CD to push image with SHA tag
+- Deployed using Helm with correct image tag override
+- Verified new image running successfully in pods
+
+Key Learning:
+Image push ≠ deployment, Helm upgrade is required and registry auth is critical
+
 ---
 
 
