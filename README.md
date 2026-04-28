@@ -11,7 +11,7 @@
 
 ```
 Phase 1: Linux/Docker Mastery
-█████████░░░░░░░░░ Day 35/180
+█████████░░░░░░░░░ Day 64/180
 ```
 
 | Phase | Days | Topics | Status |
