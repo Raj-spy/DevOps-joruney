@@ -1146,6 +1146,109 @@ Image push ≠ deployment, Helm upgrade is required and registry auth is critica
 ---
 
 
+### 🗓️ Day 64 — Helm: Linting, Templates, Values & Safe Deployment
+
+Topics: Helm lint, templates, values.yaml, overrides, dry-run, upgrade --install, atomic deployments
+
+🧠 Problem
+
+Managing raw Kubernetes YAML is error-prone and hard to reuse
+
+Manual deployment logic leads to inconsistent and unsafe releases
+
+🔍 What I Learned
+🔹 Helm Lint (Validation)
+
+Used:
+
+helm lint .
+Validates chart structure
+Detects YAML issues
+Prevents broken deployments
+🔹 Helm Templates (Dynamic Config)
+
+Converted static YAML to dynamic:
+
+replicas: {{ .Values.replicaCount }}
+Removed hardcoding
+Enabled reusable deployments
+🔹 values.yaml (Control Center)
+
+Defined default config:
+
+replicaCount: 2
+image:
+  repository: rajspy/movie-api
+  tag: latest
+Central place to control behavior
+🔹 Values Override (Runtime Control)
+
+Used CLI override:
+
+--set image.tag=<SHA>
+Overrides default values
+Used in CI/CD for dynamic deploy
+🔹 Priority Rule
+--set > values file > default values.yaml
+CLI always wins
+🔹 Dry Run (Safe Testing)
+helm upgrade movie-api . --dry-run
+Simulates deployment
+Shows final rendered output
+🔹 Template Debug
+helm template movie-api .
+Converts Helm → actual Kubernetes YAML
+Helps verify configuration
+🔹 Helm Upgrade --install (Automation Concept)
+helm upgrade --install movie-api .
+Installs if not present
+Upgrades if already exists
+Removes need for manual checks
+🔹 Idempotency Concept
+
+Same command works in all cases:
+
+Safe to run multiple times without breaking system
+🔹 Atomic Deployment (Production Safety)
+helm upgrade --install movie-api . --atomic --wait
+Waits for pods to be ready
+If failure → auto rollback
+Prevents broken state
+⚠️ Failure Scenario (Important)
+
+Without --atomic:
+
+Partial deployment
+Some pods crash
+System becomes unstable
+
+With --atomic:
+
+Failure detected
+Automatic rollback
+System remains stable
+🔥 Key Learnings
+Helm enables reusable and dynamic deployments
+values.yaml defines defaults, overrides control runtime
+Image push ≠ deployment (Helm upgrade required)
+Always validate before deploy (lint + dry-run)
+--install makes CI/CD idempotent
+--atomic ensures production safety
+
+🧠 Production Thinking
+Never deploy blindly
+Always verify rendered YAML
+Prefer values files for config
+Use CLI overrides for dynamic values (like image tags)
+Ensure deployments are safe and reversible
+
+🎯 Key Learning
+
+Helm is not just a deployment tool — it is a system to create safe, repeatable, and automated infrastructure deployments.
+
+---
+
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
