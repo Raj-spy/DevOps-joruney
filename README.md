@@ -1248,6 +1248,26 @@ Helm is not just a deployment tool — it is a system to create safe, repeatable
 
 ---
 
+### Day 65: CI → Helm Upgrade (Manual CD on Minikube)
+
+Topics: CI vs CD, image tagging strategy, Helm upgrade, deployment trigger, Minikube limitation
+
+Extended existing GitHub Actions pipeline from CI-only → CD-ready flow
+Built and pushed Docker images using commit SHA as immutable tag
+Understood that CI success does NOT mean deployment is updated
+Identified issue of hardcoded image tag in values.yaml blocking updates
+Learned that Kubernetes triggers rollout only when Deployment spec changes
+Used Helm upgrade with --set image.tag=<SHA> to pass dynamic image version
+Executed manual deployment flow due to Minikube being local (no direct CI access)
+Verified deployment using kubectl rollout status and pod inspection
+Practiced structured debugging: rollout → pods → describe → logs
+Understood failure case where same image tag leads to no rollout (old version runs)
+
+Key learning:
+CI builds artifacts, but CD requires explicitly updating the Deployment spec. Using unique image tags (like commit SHA) with Helm ensures Kubernetes triggers a rolling update and runs the correct version in production.
+
+---
+
 
 **Commands Used:**
 ```bash
