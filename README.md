@@ -1268,6 +1268,73 @@ CI builds artifacts, but CD requires explicitly updating the Deployment spec. Us
 
 ---
 
+### 🚀 Day 66: Multi-Environment Deployment (dev / prod)
+
+Topics: Helm values override, environment isolation, resource management (requests/limits), configuration separation
+
+🧩 What We Did
+Created multiple environment configs:
+values-dev.yaml
+values-prod.yaml
+Deployed separate Helm releases:
+movie-dev
+movie-prod
+Used same Helm chart but different configurations per environment
+Learned how -f values.yaml overrides default chart values
+Configured different replica counts for dev and prod
+Managed environment-specific values:
+image tag
+resource limits
+environment variables
+Understood that each Helm release creates separate Kubernetes resources
+⚙️ Resource Management (IMPORTANT PART)
+✅ Requests vs Limits
+
+Configured in values:
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+    
+🧠 Understanding
+Requests → minimum resources required
+👉 Scheduler uses this to place pod
+Limits → maximum allowed usage
+👉 Prevents pod from overusing resources
+
+🔥 Behavior
+If CPU exceeds limit → throttled
+If memory exceeds limit → pod killed (OOMKilled)
+🏢 Environment Difference
+
+Env	Replica	Resources	Purpose
+Dev	Low	Low	Testing
+Prod	High	Higher	Real users
+
+🧠 Namespace Isolation
+Used namespace (movie) for grouping resources
+Learned that environments can also be isolated using:
+different namespaces
+different configs
+Prevents interference between environments
+
+🧠 Key Concepts Learned
+Same codebase → different behavior via config
+Helm enables reusable deployments
+Resource control is critical for stability
+Proper configuration avoids system crashes
+
+🔥 Key Learning
+
+👉 Kubernetes doesn’t automatically manage resources —
+you must define requests & limits to ensure stability and fair usage
+
+---
+
 
 **Commands Used:**
 ```bash
