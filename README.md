@@ -1335,6 +1335,60 @@ you must define requests & limits to ensure stability and fair usage
 
 ---
 
+### 🚀 Day 67: Canary Release (Manual Traffic Split)
+
+Topics: Canary deployment, traffic splitting, Helm releases, debugging real issues
+
+Implemented canary deployment using two Helm releases:
+movie-prod → stable version
+movie-canary → new version
+Used same Service selector (app: movie-api) to route traffic to both versions
+Learned that traffic splitting in Kubernetes happens based on pod count (not percentage config)
+Verified traffic distribution using multiple curl requests
+Understood that canary requires:
+Same Service
+Same base label (app)
+Different replicas
+Different image versions
+
+🔧 Debugging & Issues Faced
+Fixed Service selector mismatch (Release.Name vs common label)
+Resolved ImagePullBackOff due to missing Docker image tag
+Understood importance of pushing images before deployment
+Fixed Ingress conflicts (duplicate host/path issues)
+Handled Helm upgrade errors (invalid selector, webhook issues)
+Learned immutable fields in Kubernetes (selector cannot be changed → requires redeploy)
+Debugged namespace confusion (default vs movie namespace)
+
+Fixed CI/CD failures:
+Test failure due to hardcoded version
+Introduced environment variable (APP_VERSION) for dynamic behavior
+Resolved lint issues (flake8 errors)
+
+🧪 Validation
+Added version differentiation:
+prod → "1.0.2"
+canary → "canary"
+Verified traffic split via repeated requests:
+Mixed responses confirmed working canary
+Observed approximate traffic ratio based on replica count
+
+🔄 Rollback Strategy
+Learned fastest rollback methods:
+kubectl delete deployment movie-canary
+kubectl scale deployment movie-canary --replicas=0
+Understood that canary is temporary and removed after successful rollout
+
+🧠 Key Learnings
+Kubernetes routes traffic via Service + labels (not versions)
+Docker image represents actual running code (not repo code)
+Canary = controlled exposure of new version to limited users
+CI/CD + Helm + Kubernetes must work together for production setups
+Debugging real issues is part of actual DevOps work
+
+Key learning: Canary deployment allows safe, incremental rollout of new versions with minimal risk, and requires proper labeling, service configuration, and monitoring for validation
+
+---
 
 **Commands Used:**
 ```bash
