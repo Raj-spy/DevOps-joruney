@@ -1390,6 +1390,67 @@ Key learning: Canary deployment allows safe, incremental rollout of new versions
 
 ---
 
+### 🚀 Day 68: Debug Week — CI Optimization (Timeout + Cache + Matrix)
+
+Topics: GitHub Actions optimization, caching, timeout handling, reusable workflows, CI performance tuning
+
+🧩 What We Did
+Worked on optimizing CI pipeline performance in GitHub Actions
+Identified slow builds due to repeated dependency installation
+Implemented caching for Python dependencies using actions/cache
+Used hashFiles('requirements.txt') to intelligently invalidate cache on dependency changes
+Created reusable workflow using workflow_call for better modularity
+Configured Redis service for integration testing inside CI
+Added artifact upload for storing test reports (test-report.txt)
+Improved pipeline structure by combining dependency installation steps
+⚙️ Performance Optimization
+
+✅ Dependency Caching
+key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+Reuses installed dependencies across runs
+Automatically refreshes cache when requirements change
+Reduced pipeline execution time significantly (minutes → seconds)
+
+✅ Timeout Handling
+timeout-minutes: 10
+Prevents CI jobs from running indefinitely
+Automatically terminates stuck or hanging jobs
+Improves reliability and resource utilization
+
+✅ Reusable Workflow
+on:
+  workflow_call:
+Enabled modular CI design
+Allowed reuse across multiple workflows
+Reduced duplication and improved maintainability
+
+✅ Test & Lint Optimization
+Combined dependency installation for efficiency
+Avoided duplicate pytest execution
+Used tee to save logs and display output simultaneously
+
+🧪 Validation
+Ran pipeline multiple times to verify cache behavior:
+First run → slower (cache creation)
+Second run → significantly faster (cache hit)
+Observed execution time improvement (~minutes → ~30 sec)
+Verified cache restoration logs in CI output
+Confirmed stable test + lint execution
+
+🧠 Key Learnings
+CI optimization is critical for developer productivity
+Caching reduces redundant work and speeds up pipelines
+Hash-based cache keys ensure correctness and freshness
+Timeout acts as a safety mechanism for stuck jobs
+Reusable workflows improve scalability and maintainability
+CI is not just about running code — it's about efficiency and reliability
+
+🔥 Key Learning
+
+👉 Optimizing CI pipelines improves speed, reduces cost, and enhances developer experience in real-world systems
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
