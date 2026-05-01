@@ -1451,6 +1451,68 @@ CI is not just about running code — it's about efficiency and reliability
 
 ---
 
+### 🚀 Day 69: Container Security — Trivy Scan + Vulnerability Policy
+
+Topics: container security, image scanning, CVE handling, CI security gates, dependency management
+
+🧩 What We Did
+Integrated Trivy into CI pipeline
+Scanned Docker images after build & push
+Implemented vulnerability policy using severity filters
+Used commit SHA for consistent image tagging across build, push, and scan
+Debugged multiple real-world issues:
+image not found (push vs scan mismatch)
+wrong image naming (rajspy vs raj-spy)
+severity typo (CRITICAl)
+dependency conflicts (FastAPI vs Starlette)
+Python version mismatch (3.9 vs 3.11)
+Fixed CI/CD flow by aligning build → push → scan sequence
+Handled vulnerabilities via upgrade / ignore / policy adjustment
+
+⚙️ Security Implementation
+
+✅ Image Build & Push
+docker build -t <user>/movie-api:${{ github.sha }} .
+docker push <user>/movie-api:${{ github.sha }}
+
+✅ Trivy Scan Integration
+
+- name: Run Trivy Scan
+  uses: aquasecurity/trivy-action@master
+  with:
+    image-ref: <user>/movie-api:${{ github.sha }}
+    severity: CRITICAL,HIGH
+    exit-code: 1
+  
+✅ Vulnerability Policy
+
+CRITICAL → ❌ Block deployment
+HIGH → ❌ Block (strict mode)
+MEDIUM/LOW → ✔ Allow
+
+🧪 Validation
+Verified image availability before scan (fixed manifest errors)
+Confirmed Trivy cache working for faster scans
+Observed pipeline failure on HIGH vulnerabilities
+Fixed severity parsing issues (case-sensitive values)
+Ensured consistent image tagging using ${{ github.sha }}
+Achieved full pipeline pass after resolving config + flow issues
+
+🧠 Key Learnings
+Security scanning is a mandatory gate before deployment
+CI/CD flow order matters (build → push → scan)
+Docker image must exist before scanning
+Dependency upgrades must respect compatibility (FastAPI ↔ Starlette)
+Python version affects dependency resolution
+CI environment is clean → local environment may cause false conflicts
+Even small config errors (typo, naming) can break pipelines
+
+🔥 Key Learning
+
+👉 Secure pipelines prevent vulnerable code from reaching production systems
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
