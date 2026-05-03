@@ -1582,6 +1582,41 @@ Observability = knowing system state without manual checks
 
 ---
 
+### 🚀 Day 71: Rollback Strategy Testing
+
+Topics: rollback, failure recovery, deployment safety, production reliability
+
+🧩 What We Did
+Learned rollback concept in production systems
+Used Helm for version-based rollback
+Understood Helm revisions and deployment history
+Simulated failure scenario and tested rollback
+Verified system recovery after rollback
+Explored limitations of rollback (especially DB migrations)
+Learned fallback strategies when rollback fails
+
+⚙️ Implementation
+🔹 Check history
+helm history movie-prod -n movie
+
+🔹 Rollback
+helm rollback movie-prod <revision> -n movie
+
+🧪 Validation
+Checked pod status after rollback
+Verified previous version restored
+Ensured application working correctly
+
+🧠 Key Learnings
+Rollback is fastest recovery method
+Always maintain versioned deployments
+Helm makes rollback easy via revisions
+Rollback may fail due to config or DB changes
+DB migrations should be backward compatible
+Always test rollback, not just deployment
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
