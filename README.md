@@ -11,7 +11,7 @@
 
 ```
 Phase 1: Linux/Docker Mastery
-█████████░░░░░░░░░ Day 64/180
+█████████░░░░░ Day 71/180
 ```
 
 | Phase | Days | Topics | Status |
@@ -19,7 +19,9 @@ Phase 1: Linux/Docker Mastery
 | Phase 1 | 1–14 | Linux Debugging Deep Dive | ✅ Complete |
 | Phase 1 | 15–23 | Docker + Git Production | ✅ Complete |
 | Phase 1 | 24–42 | Advanced Docker + Projects | ✅ Complete |
-| Phase 2 | 43–60 | Kubernetes + CI/CD | ⏳ In progress |
+| Phase 2 | 43–60 | Kubernetes + CI/CD | ✅ Complete |
+| Phase 2 | 60–72 | Kubernetes + helm In progress |
+
 
 ---
 
