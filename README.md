@@ -1619,6 +1619,165 @@ Always test rollback, not just deployment
 
 ---
 
+### ⚙️ Day 72–84: Production-Grade CI/CD & Kubernetes Hardening
+
+🔹 Day 72–73: Multi-Environment Architecture
+
+Objective
+
+Establish strict isolation between development, staging, and production environments.
+
+Implementation
+Created separate Helm values files:
+values-dev.yaml
+values-staging.yaml
+values-prod.yaml
+Provisioned dedicated Kubernetes namespaces:
+dev, staging, prod
+Configured environment-specific parameters:
+replica counts
+resource allocations
+environment variables
+Key Insight
+
+Environment separation must be enforced at the namespace level, not just by release naming.
+
+🔹 Day 74–75: CI Pipeline Stability
+Objective
+
+Achieve a deterministic and reliable CI pipeline with minimal flakiness.
+
+Implementation
+Designed a reusable GitHub Actions workflow (workflow_call)
+Implemented dependency caching for faster builds
+Integrated:
+linting (flake8)
+testing (pytest)
+Added execution timeouts and artifact reporting
+Key Insight
+
+A stable CI system should produce consistent, repeatable outcomes without intermittent failures.
+
+🔹 Day 76–77: Continuous Deployment Strategy
+Objective
+
+Implement a controlled deployment pipeline with progressive promotion.
+
+Implementation
+Automated deployments:
+Dev → automatic
+Staging → post-CI success
+Production deployment gated via manual approval
+Standardized deployments using Helm
+Deployment Flow
+CI → Build → Dev → Staging → Manual Approval → Production
+Key Insight
+
+Controlled promotion reduces risk and enforces validation at each stage.
+
+🔹 Day 78–79: Secrets Management
+Objective
+
+Eliminate hardcoded credentials and enforce secure secret handling.
+
+Implementation
+Migrated all secrets to GitHub Secrets
+Configured AWS authentication using OIDC (no static credentials)
+Removed exposed AWS keys from repository history
+Key Insight
+
+Secrets must never reside in source code; they should be managed via secure external systems.
+
+🔹 Day 80–81: Deployment Safety Mechanisms
+Objective
+
+Ensure zero-downtime deployments and application resilience.
+
+Implementation
+Health Probes
+Readiness Probe → controls traffic routing
+Liveness Probe → ensures automatic recovery
+Resource Management
+Defined CPU and memory requests/limits
+Rolling Update Strategy
+maxUnavailable: 0
+maxSurge: 1
+Key Insight
+
+Deployment success is not sufficient — deployments must be safe, observable, and recoverable.
+
+🔹 Day 82–83: Observability
+Objective
+
+Enable visibility into system behavior post-deployment.
+
+Implementation
+Integrated Slack alerts for pipeline success/failure
+Used runtime log inspection (kubectl logs)
+Performed active verification of deployed services
+Key Insight
+
+Operational visibility is essential; deployment without observability is incomplete.
+
+🔹 Day 84: System Hardening & Failure Testing
+Objective
+
+Validate system behavior under failure conditions.
+
+Testing Strategy
+Failure Simulation
+Deployed invalid image tags to trigger failures
+Zero-Downtime Validation
+Verified that existing pods continue serving traffic
+Rollback Execution
+Used Helm revision rollback to restore stable state
+helm rollback <release> <revision>
+Full Pipeline Validation
+
+End-to-end test:
+
+CI → Build → Push → Deploy → Verify
+Key Insight
+
+A system is production-ready only when it can fail safely and recover quickly.
+
+🔹 Additional Enhancements
+Container Registry
+Migrated from DockerHub to AWS ECR for secure image storage
+Security
+Integrated vulnerability scanning using Trivy
+Enforced failure on critical vulnerabilities
+Autoscaling
+Implemented Horizontal Pod Autoscaler (HPA)
+Enabled dynamic scaling based on CPU utilization
+
+🧠 Final Architecture
+Code Commit →
+CI Pipeline (Lint + Test) →
+Docker Build →
+Push to ECR →
+Security Scan (Trivy) →
+Deploy to Dev →
+Deploy to Staging →
+Manual Approval →
+Deploy to Production →
+Autoscaling (HPA) →
+Monitoring & Alerts
+
+🏁 Outcome
+Multi-environment Kubernetes deployment architecture
+Production-grade CI/CD pipeline
+Secure authentication and secret management
+Zero-downtime deployment strategy
+Automated scaling and recovery mechanisms
+Verified rollback and failure handling
+
+💬 Professional Summary
+
+Designed and implemented a production-grade CI/CD pipeline with multi-environment Kubernetes deployments using Helm. Integrated AWS ECR for container registry, enforced secure authentication via OIDC, implemented automated vulnerability scanning, enabled zero-downtime deployments with health probes and rolling updates, and incorporated autoscaling with HPA along with robust rollback strategies
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
