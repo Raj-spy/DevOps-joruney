@@ -1778,6 +1778,120 @@ Designed and implemented a production-grade CI/CD pipeline with multi-environmen
 
 ---
 
+### Day 85 — AWS Free Tier Setup & Secure Cloud Foundation
+AWS Free Tier Setup
+
+Initialized and configured a secure AWS Free Tier environment as the base infrastructure for upcoming cloud-native and DevOps workloads. Focused on building a production-aware setup instead of using default insecure configurations.
+
+Root Account vs IAM Users
+
+Secured the AWS root account with MFA and avoided using it for daily operations. Created a dedicated IAM administrative user for controlled access management, following industry best practices around identity isolation and operational security.
+
+Learned why production systems avoid routine root-account usage and how IAM identities improve auditability, accountability, and controlled infrastructure access.
+
+MFA (Multi-Factor Authentication)
+
+Enabled MFA to strengthen account security and reduce the risk of unauthorized access due to credential compromise or phishing attacks. Understood how layered authentication improves cloud account protection in real-world production environments.
+
+IAM Permissions & Least-Privilege
+
+Explored IAM permission models and the principle of least-privilege access control. Understood how limiting permissions reduces blast radius, prevents accidental infrastructure modifications, and minimizes security exposure during credential leaks or operational mistakes.
+
+Started thinking about cloud access from a production-security perspective rather than only functionality.
+
+AWS CLI Configuration
+
+Configured AWS CLI for programmatic cloud access and verified authenticated identity using:
+
+aws sts get-caller-identity
+
+Learned the importance of verifying:
+
+active IAM identity
+AWS account context
+region configuration
+
+before performing infrastructure operations or deployments.
+
+Billing Budgets & Cost Alerts
+
+Configured AWS billing budgets and Free Tier alerts to proactively monitor cloud spending and avoid unexpected infrastructure costs.
+
+Implemented:
+
+monthly budget threshold alerts
+Free Tier usage notifications
+basic cloud cost observability practices
+
+Understood how production teams treat cloud cost monitoring as an operational responsibility alongside system monitoring and security.
+
+Key Production Learning
+
+This session was not only about setting up AWS services, but about understanding:
+
+secure cloud access management
+operational accountability
+auditability through IAM and CloudTrail concepts
+infrastructure cost protection
+incident-aware engineering mindset
+production-grade cloud security fundamentals
+
+The focus shifted from:
+
+“using AWS services”
+
+to:
+
+“operating cloud infrastructure responsibly and securely.”
+
+What We Learned
+
+Why root account should not be used for daily operations
+How IAM controls authentication and authorization
+Why least-privilege reduces security risk and blast radius
+Why long-lived AWS access keys are dangerous
+Why OIDC temporary credentials are safer for CI/CD systems
+How CloudTrail helps during security investigations and audits
+Why read-only access can still expose sensitive infrastructure information
+How billing alerts help prevent unexpected AWS costs
+How production engineers think during suspicious infrastructure activity
+
+What We Did
+
+Configured AWS Free Tier account securely
+Enabled MFA for account protection
+Created IAM admin user for daily access
+Configured AWS CLI using aws configure
+Verified AWS identity using:
+aws sts get-caller-identity
+Created billing budget alerts (< $5/month)
+Enabled Free Tier usage alerts
+Explored CloudTrail auditing concepts
+Practiced production-level security and incident-response thinking
+
+Key Learnings
+
+Security is not based on trust — it is based on controlled access
+Cloud costs are an operational metric and must be monitored
+Auditability is critical during incidents
+Temporary credentials reduce credential exposure risk
+Least-privilege minimizes blast radius during compromise
+Read-only access can still enable reconnaissance attacks
+Engineers must always verify identity, region, and environment before deployments
+Production Concepts Introduced
+Blast Radius
+Least-Privilege Access
+Authentication vs Authorization
+Audit Logging
+Incident Investigation
+Credential Exposure Risk
+Operational Cost Monitoring
+Infrastructure Accountability
+
+Final Summary
+
+Day 85 focused on building secure AWS foundations and understanding how real production environments handle access control, auditability, and cloud cost protection. Instead of only learning AWS setup, the session emphasized operational security, IAM best practices, billing observability, and incident-response thinking. The goal was to start developing a production engineering mindset from the first day of AWS learning.
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
