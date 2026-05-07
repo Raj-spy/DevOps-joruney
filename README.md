@@ -1892,6 +1892,182 @@ Final Summary
 
 Day 85 focused on building secure AWS foundations and understanding how real production environments handle access control, auditability, and cloud cost protection. Instead of only learning AWS setup, the session emphasized operational security, IAM best practices, billing observability, and incident-response thinking. The goal was to start developing a production engineering mindset from the first day of AWS learning.
 
+---
+
+### 🗓️ Day 86 — AWS VPC Architecture & Terraform Networking
+
+Topics: AWS VPC, CIDR blocks, public/private subnets, Internet Gateway, Route Tables, Terraform basics, Infrastructure as Code (IaC), configuration drift, Terraform state, production networking
+
+Understood that VPC acts as an isolated private network inside AWS where infrastructure, routing, and security boundaries are controlled
+
+Learned that networking design directly impacts:
+
+security
+scalability
+connectivity
+infrastructure isolation
+
+Understood core concept:
+
+VPC = isolated network
+Subnet = smaller network section
+Route Table = traffic controller
+Internet Gateway = internet access layer
+
+🧠 Public vs Private Subnets
+
+Public subnet:
+
+connected to Internet Gateway
+internet accessible
+used for public-facing services
+
+Private subnet:
+
+no direct internet exposure
+used for databases and internal services
+reduces attack surface
+
+Understood why production systems isolate sensitive workloads in private networks
+
+⚙️ Terraform Infrastructure Setup
+
+Created Terraform project structure:
+
+main.tf
+provider.tf
+variables.tf
+outputs.tf
+
+Configured AWS provider:
+
+provider "aws" {
+  region = "ap-south-1"
+}
+
+🏗️ Infrastructure Provisioned
+
+Created VPC using Terraform:
+
+resource "aws_vpc" "main"
+
+Created:
+
+public subnet
+private subnet
+Internet Gateway
+Route Table
+subnet association
+
+Configured public subnet internet routing through:
+
+0.0.0.0/0 → Internet Gateway
+
+🔧 Terraform Workflow
+
+Practiced production Terraform commands:
+
+terraform init
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
+
+Understood importance of:
+
+formatting
+validation
+previewing changes before apply
+
+🔁 Infrastructure as Code (IaC)
+
+Learned Terraform enables:
+
+reproducible infrastructure
+version-controlled environments
+infrastructure auditability
+team collaboration
+reduced manual configuration
+
+Understood:
+
+infrastructure should be recreated from code, not manually rebuilt from memory
+
+🌍 Configuration Drift
+
+Learned configuration drift happens when:
+
+actual infrastructure
+≠
+Terraform-defined infrastructure
+
+Example:
+
+manual AWS console changes
+undocumented resources
+inconsistent environments
+
+Understood Terraform helps maintain infrastructure consistency
+
+🔥 Key Benefits
+
+reproducible infrastructure
+infrastructure version control
+reduced manual setup
+easier environment replication
+better operational visibility
+infrastructure standardization
+
+⚠️ Risks & Failure Scenarios
+
+Identified production risks:
+
+overlapping CIDR ranges
+broken route tables
+public database exposure
+manual console modifications
+lost Terraform state file
+
+Understood that route table mistakes can silently break:
+
+connectivity
+deployments
+internet access
+
+🧠 Production Thinking
+
+Networking is not just connectivity — it is security architecture
+
+Public exposure should always be:
+
+minimal
+intentional
+controlled
+
+Terraform reduces operational risk by making infrastructure:
+
+declarative
+reviewable
+reproducible
+
+Good infrastructure must be:
+
+understandable by other engineers
+recoverable during incidents
+auditable through Git history
+
+🧩 Core Architecture KnowledgeVPC as a Boundary: Understood that VPC acts as an isolated private network inside AWS where infrastructure, routing, and security boundaries are controlled.IP Planning & CIDR Math:Slash (/) Logic: Learned that /16 locks 2 octets (65,536 IPs) and /24 locks 3 octets (256 IPs).The 5 Reserved IPs: AWS reserves .0, .1, .2, .3, and .255 in every subnet. Actual usable IPs = Total - 5.Networking Impact: Learned that networking design directly impacts Security, Scalability, Connectivity, and Infrastructure Isolation.
+
+⚠️ Risks & Failure ScenariosThe "Destroy" Risk: Accidental terraform destroy can wipe production environments instantly.GitHub Blockers: Learned why .terraform/ (binaries) and *.tfstate must be in .gitignore after hitting GitHub's 100MB file limit.Authorization Errors: Experienced 403 Forbidden errors when IAM users lack ec2:CreateVpc permissions.
+
+🌍 Production ThinkingLayered Defense: Successful login (Authentication) does not mean unrestricted access (Authorization).Public Exposure: Should always be minimal, intentional, and controlled.Traceability: If actions are not traceable via CloudTrail or Git, production systems become dangerous.
+
+🎯 Key Learning
+
+Terraform and AWS VPC together enable secure, isolated, and reproducible cloud infrastructure by defining networking architecture as code, reducing configuration drift and improving production reliability, scalability, and operational consistency.
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
