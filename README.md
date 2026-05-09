@@ -10,7 +10,7 @@
 | Phase 1 | 15–23 | Docker + Git Production | ✅ Complete |
 | Phase 1 | 24–42 | Advanced Docker + Projects | ✅ Complete |
 | Phase 2 | 43–60 | Kubernetes + CI/CD | ✅ Complete |
-| Phase 2 | 60–72 | Kubernetes + AWS | In Progress |
+| Phase 2 | 60–90 | Kubernetes + AWS | In Progress |
 
 
 ---
