@@ -1914,7 +1914,7 @@ Subnet = smaller network section
 Route Table = traffic controller
 Internet Gateway = internet access layer
 
-🧠 Public vs Private Subnets
+Public vs Private Subnets
 
 Public subnet:
 
@@ -1993,7 +1993,7 @@ Understood:
 
 infrastructure should be recreated from code, not manually rebuilt from memory
 
-🌍 Configuration Drift
+Configuration Drift
 
 Learned configuration drift happens when:
 
@@ -2009,7 +2009,7 @@ inconsistent environments
 
 Understood Terraform helps maintain infrastructure consistency
 
-🔥 Key Benefits
+Key Benefits
 
 reproducible infrastructure
 infrastructure version control
@@ -2056,17 +2056,191 @@ understandable by other engineers
 recoverable during incidents
 auditable through Git history
 
-🧩 Core Architecture KnowledgeVPC as a Boundary: Understood that VPC acts as an isolated private network inside AWS where infrastructure, routing, and security boundaries are controlled.IP Planning & CIDR Math:Slash (/) Logic: Learned that /16 locks 2 octets (65,536 IPs) and /24 locks 3 octets (256 IPs).The 5 Reserved IPs: AWS reserves .0, .1, .2, .3, and .255 in every subnet. Actual usable IPs = Total - 5.Networking Impact: Learned that networking design directly impacts Security, Scalability, Connectivity, and Infrastructure Isolation.
+Core Architecture KnowledgeVPC as a Boundary: Understood that VPC acts as an isolated private network inside AWS where infrastructure, routing, and security boundaries are controlled.IP Planning & CIDR Math:Slash (/) Logic: Learned that /16 locks 2 octets (65,536 IPs) and /24 locks 3 octets (256 IPs).The 5 Reserved IPs: AWS reserves .0, .1, .2, .3, and .255 in every subnet. Actual usable IPs = Total - 5.Networking Impact: Learned that networking design directly impacts Security, Scalability, Connectivity, and Infrastructure Isolation.
 
 ⚠️ Risks & Failure ScenariosThe "Destroy" Risk: Accidental terraform destroy can wipe production environments instantly.GitHub Blockers: Learned why .terraform/ (binaries) and *.tfstate must be in .gitignore after hitting GitHub's 100MB file limit.Authorization Errors: Experienced 403 Forbidden errors when IAM users lack ec2:CreateVpc permissions.
 
-🌍 Production ThinkingLayered Defense: Successful login (Authentication) does not mean unrestricted access (Authorization).Public Exposure: Should always be minimal, intentional, and controlled.Traceability: If actions are not traceable via CloudTrail or Git, production systems become dangerous.
-
-🎯 Key Learning
+Production ThinkingLayered Defense: Successful login (Authentication) does not mean unrestricted access (Authorization).Public Exposure: Should always be minimal, intentional, and controlled.Traceability: If actions are not traceable via CloudTrail or Git, production systems become dangerous.
+Key Learning
 
 Terraform and AWS VPC together enable secure, isolated, and reproducible cloud infrastructure by defining networking architecture as code, reducing configuration drift and improving production reliability, scalability, and operational consistency.
 
 ---
+
+### 🗓️ Day 87 — EKS Cluster Provisioning with Terraform (Multi-AZ Architecture)
+
+Topics: Amazon EKS, Kubernetes control plane, managed node groups, Terraform EKS module, multi-AZ networking, EKS addons, IAM access mapping, Kubernetes RBAC, cluster validation, high availability
+
+Understood the architecture of Kubernetes control plane components:
+
+API server
+scheduler
+controller manager
+kubelet
+reconciliation/self-healing workflow
+
+Learned that Kubernetes is an API-centric distributed orchestration platform where workloads are continuously reconciled against desired state.
+
+EKS Architecture Understanding
+
+Learned that Amazon EKS manages:
+
+Kubernetes control plane
+API server availability
+etcd management
+control plane HA
+
+While engineers remain responsible for:
+
+worker nodes
+networking
+scaling
+IAM
+observability
+workload reliability
+
+Understood why EKS requires:
+
+subnets across multiple Availability Zones
+distributed infrastructure for fault tolerance
+resilient cluster networking
+
+🏗️ Infrastructure as Code (Terraform)
+
+Successfully used Terraform to provision:
+
+AWS VPC
+public/private subnet architecture
+multi-AZ networking
+Internet Gateway
+route table associations
+EKS cluster
+managed node groups
+
+Practiced Terraform workflow:
+
+terraform init
+terraform validate
+terraform plan
+terraform apply
+
+Understood that Terraform enables:
+
+reproducible infrastructure
+declarative provisioning
+infrastructure auditability
+reduced configuration drift
+
+🌍 Multi-AZ High Availability
+
+Provisioned EKS worker nodes across multiple Availability Zones in:
+
+ap-south-1
+
+Understood production importance of:
+
+fault tolerance
+workload rescheduling
+distributed infrastructure resilience
+
+Learned that single-AZ architecture creates:
+
+single point of failure
+
+while multi-AZ architecture improves:
+
+platform availability
+recovery capability
+workload continuity during datacenter failures
+
+🔐 IAM & Kubernetes Access Control
+
+Configured EKS Access Entries to integrate:
+
+AWS IAM identities
+with
+Kubernetes RBAC authorization
+
+Attached:
+
+AmazonEKSClusterAdminPolicy
+
+to enable:
+
+cluster administration
+node visibility
+workload management
+Kubernetes API access
+
+Understood relationship between:
+
+AWS IAM authentication
+Kubernetes RBAC authorization
+
+EKS Addons
+
+Enabled critical cluster addons:
+
+CoreDNS
+kube-proxy
+VPC CNI
+
+Understood these addons provide:
+
+DNS resolution
+pod networking
+service communication
+Kubernetes traffic routing
+
+Learned that addon failures can silently break:
+
+service discovery
+networking
+microservice communication
+
+Cluster Validation & Verification
+
+Validated cluster health using:
+
+kubectl get nodes
+kubectl get pods -A
+kubectl cluster-info
+
+Verified:
+
+control plane Active state
+worker nodes Ready state
+addon health
+Kubernetes API connectivity
+
+Understood:
+
+successful infrastructure provisioning must always be validated operationally.
+
+Production Thinking
+
+Kubernetes reliability depends heavily on:
+
+networking reliability
+DNS availability
+infrastructure redundancy
+scheduler capacity
+healthy worker nodes
+
+Learned that:
+
+self-healing only works when healthy infrastructure capacity exists.
+
+Understood that production-grade Kubernetes design requires:
+
+fault tolerance
+infrastructure isolation
+distributed architecture
+declarative infrastructure management
+
+Key Learning
+
+Amazon EKS combined with Terraform enables automated, highly available, and production-ready Kubernetes infrastructure provisioning by integrating distributed networking architecture, managed orchestration services, declarative infrastructure management, and resilient workload scheduling across multiple Availability Zones.
 
 **Commands Used:**
 ```bash
