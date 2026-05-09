@@ -1,17 +1,7 @@
-# 🚀 60-Day DevOps Learning Journey
-
-> **Goal:** Linux → Docker → Kubernetes → CI/CD → Cloud  
-> **Start Date:** Day 0  
-> **Current Status:** Day 22 complete  
-> **Phase:** Phase 1 — Linux/Docker Mastery (Days 1–60)
-
----
-
 ## 📊 Progress
 
 ```
-Phase 1: Linux/Docker Mastery
-█████████░░░░░ Day 71/180
+█████████░░░░░ Day 87/180
 ```
 
 | Phase | Days | Topics | Status |
@@ -20,10 +10,13 @@ Phase 1: Linux/Docker Mastery
 | Phase 1 | 15–23 | Docker + Git Production | ✅ Complete |
 | Phase 1 | 24–42 | Advanced Docker + Projects | ✅ Complete |
 | Phase 2 | 43–60 | Kubernetes + CI/CD | ✅ Complete |
-| Phase 2 | 60–72 | Kubernetes + helm In progress |
+| Phase 2 | 60–72 | Kubernetes + AWS | In Progress |
 
 
 ---
+
+Phase 1: Linux/Docker Mastery
+
 
 ## 📅 Daily Logs
 
