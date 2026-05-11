@@ -1938,7 +1938,7 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-🏗️ Infrastructure Provisioned
+Infrastructure Provisioned
 
 Created VPC using Terraform:
 
@@ -2027,7 +2027,7 @@ connectivity
 deployments
 internet access
 
-🧠 Production Thinking
+Production Thinking
 
 Networking is not just connectivity — it is security architecture
 
@@ -2098,7 +2098,7 @@ subnets across multiple Availability Zones
 distributed infrastructure for fault tolerance
 resilient cluster networking
 
-🏗️ Infrastructure as Code (Terraform)
+Infrastructure as Code (Terraform)
 
 Successfully used Terraform to provision:
 
@@ -2124,7 +2124,7 @@ declarative provisioning
 infrastructure auditability
 reduced configuration drift
 
-🌍 Multi-AZ High Availability
+Multi-AZ High Availability
 
 Provisioned EKS worker nodes across multiple Availability Zones in:
 
@@ -2146,7 +2146,7 @@ platform availability
 recovery capability
 workload continuity during datacenter failures
 
-🔐 IAM & Kubernetes Access Control
+IAM & Kubernetes Access Control
 
 Configured EKS Access Entries to integrate:
 
@@ -2234,6 +2234,208 @@ declarative infrastructure management
 Key Learning
 
 Amazon EKS combined with Terraform enables automated, highly available, and production-ready Kubernetes infrastructure provisioning by integrating distributed networking architecture, managed orchestration services, declarative infrastructure management, and resilient workload scheduling across multiple Availability Zones.
+
+---
+
+### Day 88 — EKS Node Groups (Spot + On-Demand)
+
+Topics: EKS managed node groups, Spot vs On-Demand instances, workload reliability, Kubernetes scheduling basics, infrastructure cost optimization, node labels, high availability, capacity planning
+
+Understood that Kubernetes workloads run on worker nodes and EKS Node Groups are managed collections of EC2 worker nodes used to organize infrastructure based on workload requirements.
+
+Learned that production platforms separate workloads based on:
+
+reliability requirements
+workload criticality
+scaling behavior
+infrastructure cost
+EKS Node Group Understanding
+
+Learned that Managed Node Groups in EKS provide:
+
+automated worker node provisioning
+lifecycle management
+scaling integration
+Kubernetes node registration
+
+Understood that node groups are not just EC2 pools, but:
+
+infrastructure reliability and workload placement strategy.
+
+On-Demand vs Spot Instances
+On-Demand Nodes
+
+Used for:
+
+critical APIs
+stable services
+production workloads
+
+Characteristics:
+
+reliable
+predictable
+stable
+higher cost
+Spot Nodes
+
+Used for:
+
+non-critical workloads
+batch processing
+CI/CD jobs
+interruptible workloads
+
+Characteristics:
+
+low cost
+interruptible
+reclaimed by AWS anytime
+cost-efficient but less reliable
+Terraform Implementation
+
+Modified EKS Terraform configuration to create:
+
+On-Demand node group
+Spot node group
+
+Configured:
+
+capacity types
+scaling configuration
+node labels
+autoscaling boundaries
+
+Implemented:
+
+capacity_type = "ON_DEMAND"
+capacity_type = "SPOT"
+
+Added workload labels for infrastructure differentiation:
+
+labels = {
+  workload = "critical"
+}
+Multi-AZ Infrastructure
+
+Provisioned worker nodes across:
+
+ap-south-1a
+ap-south-1b
+
+Understood why EKS requires:
+
+multi-AZ subnet architecture
+distributed worker nodes
+infrastructure fault tolerance
+
+Learned that single-AZ architecture creates:
+
+single point of failure.
+
+Networking & Private Subnet Learning
+
+Identified that private subnets without:
+
+NAT Gateway
+
+prevent worker nodes from:
+
+pulling container images
+accessing AWS APIs
+bootstrapping correctly
+
+Temporarily shifted worker nodes to public subnets for:
+
+learning simplicity
+reduced AWS cost
+successful cluster bootstrap
+
+Understood production tradeoff between:
+
+security
+cost
+operational simplicity
+Kubernetes Scheduling & Recovery Understanding
+
+Learned Kubernetes recovery flow during Spot interruption:
+
+Spot node failure
+↓
+Pods disappear
+↓
+Controllers detect mismatch
+↓
+Scheduler searches healthy nodes
+↓
+Recovery only if capacity exists
+
+Understood that Kubernetes self-healing depends on:
+
+healthy infrastructure
+available CPU/memory
+schedulable nodes
+workload constraints
+Scheduling Constraints Learned
+
+Pods may remain Pending because of:
+
+insufficient resources
+node selectors
+taints/tolerations
+affinity rules
+storage constraints
+
+Understood that Kubernetes scheduling is:
+
+constraint-based orchestration.
+
+Verification & Cluster Validation
+
+Verified cluster health using:
+
+kubectl get nodes
+kubectl get nodes --show-labels
+kubectl get pods -A
+
+Validated:
+
+node group creation
+worker node readiness
+label assignment
+addon health
+Kubernetes API connectivity
+Key Production Learnings
+Spot instances optimize cost, not reliability
+Critical workloads should not depend entirely on Spot capacity
+High availability depends on distributed infrastructure
+Self-healing requires healthy backup capacity
+Kubernetes scheduling depends on constraints, not only free CPU
+Infrastructure architecture directly impacts workload reliability
+Production Thinking
+
+Node groups represent:
+
+infrastructure strategy
+workload placement policy
+reliability segmentation
+
+Good production platforms balance:
+
+reliability
+scalability
+fault tolerance
+infrastructure cost
+
+Learned that:
+
+Kubernetes recovery is limited by available infrastructure capacity.
+
+Key Learning
+
+EKS Node Groups enable production Kubernetes platforms to separate critical and interruptible workloads across different infrastructure reliability models, allowing engineers to balance cloud cost optimization, workload stability, and high availability using managed Kubernetes worker node architecture.
+
+---
 
 **Commands Used:**
 ```bash
