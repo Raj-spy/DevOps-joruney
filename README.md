@@ -2255,6 +2255,119 @@ Key production learning from today was understanding that Kubernetes scheduling 
 
 ---
 
+### Day 89 — Deploy Movie API to EKS via Helm
+
+Topics: Helm deployment workflow, Kubernetes workload lifecycle, EKS workload scheduling, automated CI/CD deployment, immutable container images, rolling updates, readiness/liveness probes, ECR integration, GitHub Actions deployment automation, Kubernetes pod inspection and debugging
+
+Implemented and validated a complete automated deployment workflow for the Movie API on AWS EKS using Helm, GitHub Actions, ECR, and Kubernetes rolling deployments. The session focused on understanding how production Kubernetes platforms deploy and manage workloads through immutable container artifacts and automated delivery pipelines instead of manual deployment operations.
+
+Connected local kubectl configuration to the recreated EKS cluster and verified foundational cluster health before workload deployment. Validated successful operation of CoreDNS, kube-proxy, and the AWS VPC CNI to ensure networking, DNS resolution, service routing, and pod communication were functioning correctly before application rollout.
+
+Reviewed and validated Helm chart configuration for:
+
+replicas
+rolling update strategy
+readiness and liveness probes
+resource requests and limits
+service exposure
+ECR image configuration
+
+Understood that Helm acts as a deployment management layer that standardizes Kubernetes deployments through reusable templates and centralized configuration management.
+
+Successfully deployed the Movie API workload to EKS using Helm and observed the complete Kubernetes deployment lifecycle:
+
+Helm
+↓
+API Server
+↓
+Deployment Controller
+↓
+ReplicaSet
+↓
+Scheduler
+↓
+Worker Nodes
+↓
+Container Runtime
+↓
+Readiness Probe Validation
+↓
+Healthy Running Pods
+
+Observed that pods initially entered:
+
+Running
+
+state before becoming:
+
+Ready
+
+after successful readiness probe validation. This demonstrated how Kubernetes prevents production traffic from reaching unhealthy or partially initialized applications during startup.
+
+Performed deep workload inspection using:
+
+kubectl describe pod
+kubectl logs
+kubectl get events
+
+Analyzed:
+
+scheduling events
+image pull operations
+container startup lifecycle
+readiness failures
+successful recovery behavior
+resource allocation
+QoS classification
+
+Validated successful ECR image pulls directly through EKS worker node IAM permissions and understood that same-account ECR access often eliminates the need for manual Kubernetes imagePullSecrets configuration.
+
+Integrated the deployment workflow with GitHub Actions CI/CD to fully automate:
+
+testing
+Docker image build
+vulnerability scanning
+immutable image tagging
+ECR push
+Helm deployment to EKS
+
+Implemented immutable image deployments using:
+
+${{ github.sha }}
+
+instead of mutable:
+
+latest
+
+tags to ensure deployment traceability, rollback capability, deterministic releases, and auditability.
+
+Configured secure AWS authentication using GitHub OIDC-based IAM role assumption instead of long-lived AWS access keys. Understood how temporary credential-based authentication improves production cloud security posture while enabling automated infrastructure and deployment operations.
+
+Validated Kubernetes rolling deployment behavior using:
+
+maxUnavailable: 0
+maxSurge: 1
+
+to support near zero-downtime application updates during rollout operations.
+
+Key production understanding from the session was learning that Kubernetes deployment success depends on the combined health of infrastructure, networking, scheduling, image registry access, application startup behavior, and probe validation rather than only successful container execution.
+
+Production learnings to remember:
+
+A container entering Running state does not guarantee application readiness.
+Readiness probes protect production traffic from unhealthy applications.
+Kubernetes self-healing depends on healthy infrastructure and available capacity.
+Immutable image tags are critical for rollback, traceability, and deterministic deployments.
+CI/CD pipelines should automate deployment workflows to reduce human error and improve operational consistency.
+Infrastructure health should always be verified before workload deployment.
+Deployment systems must be observable, recoverable, repeatable, and secure.
+Kubernetes scheduling and rollout behavior should always be validated through logs, events, and workload inspection.
+Production deployments should avoid long-lived cloud credentials and use temporary identity-based authentication wherever possible.
+Healthy infrastructure is only truly validated when real workloads execute successfully on the platform.
+
+---
+
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
