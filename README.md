@@ -1,7 +1,7 @@
 ## 📊 Progress
 
 ```
-█████████░░░░░ Day 87/180
+█████████░░░░░ Day 89/180
 ```
 
 | Phase | Days | Topics | Status |
