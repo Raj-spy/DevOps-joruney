@@ -2367,6 +2367,323 @@ Healthy infrastructure is only truly validated when real workloads execute succe
 
 ---
 
+### Day 90 — Production Ingress Architecture on AWS EKS using ALB, Ingress Controller, and Kubernetes Reconciliation
+Overview
+
+Day 90 focused on building and understanding a production-style internet-facing ingress architecture on AWS EKS. The entire topic was intentionally divided into five structured stages to deeply understand Kubernetes networking, ingress abstraction, AWS Load Balancer integration, HTTPS architecture, and controller-based infrastructure reconciliation instead of blindly deploying components without architectural clarity.
+
+The objective of this phase was not only to expose the Movie API publicly, but to understand how modern cloud-native production systems route external internet traffic into Kubernetes workloads securely, reliably, and dynamically.
+
+Stage 1 — Understanding Production Traffic Flow Architecture
+
+The first stage focused on understanding why NodePort-based exposure is not considered production-grade for internet-facing applications.
+
+Initially, the Movie API was accessible through:
+
+Node IP + NodePort
+
+This architecture exposed several production limitations:
+
+Direct worker node exposure increases attack surface.
+Infrastructure details such as node IPs and ports become publicly visible.
+Node failure can directly impact traffic accessibility.
+Scaling infrastructure becomes operationally difficult.
+Clients become tightly coupled to infrastructure topology.
+
+Production systems instead rely on stable ingress layers that abstract infrastructure complexity from clients.
+
+The production ingress architecture studied was:
+
+Internet
+↓
+AWS Application Load Balancer (ALB)
+↓
+Ingress Rules
+↓
+Kubernetes Service
+↓
+Healthy Pods
+
+Key architectural understanding gained:
+
+Clients should never directly depend on pod IPs or worker node addresses.
+Pods are ephemeral and infrastructure must remain replaceable.
+Stable ingress layers isolate users from backend infrastructure churn.
+Kubernetes Services provide internal service abstraction and endpoint discovery.
+ALBs provide stable public access, traffic distribution, and backend health validation.
+
+The distinction between Service, Ingress, and ALB was deeply clarified:
+
+Component	Responsibility
+Service	Internal pod discovery and load balancing
+Ingress	Declarative traffic routing behavior
+ALB	Actual internet-facing traffic engine
+Stage 2 — AWS Load Balancer Controller and Reconciliation Architecture
+
+The second stage focused on understanding how Kubernetes dynamically provisions AWS infrastructure through controllers.
+
+A major concept learned was:
+
+Ingress itself does NOT create ALB infrastructure.
+
+Ingress resources are only declarative configuration objects stored in the Kubernetes API Server.
+
+Example:
+
+host: api.company.com
+path: /
+service: movie-api
+
+This defines desired routing behavior, but does not provision infrastructure directly.
+
+The actual infrastructure lifecycle is managed by the:
+
+AWS Load Balancer Controller
+
+The controller continuously watches Kubernetes API changes and reconciles AWS infrastructure accordingly.
+
+Complete reconciliation flow studied:
+
+Ingress YAML Applied
+↓
+Ingress Stored in API Server
+↓
+AWS Load Balancer Controller Detects Change
+↓
+Controller Calls AWS APIs
+↓
+ALB Provisioned
+↓
+Listeners Created
+↓
+Target Groups Attached
+↓
+Security Groups Configured
+↓
+Traffic Routing Activated
+
+Deep Kubernetes architecture concepts learned:
+
+Kubernetes is cloud-agnostic by design.
+Controllers operationalize declarative desired state.
+Kubernetes architecture is fundamentally reconciliation-driven.
+Desired state defines system intent, not implementation logic.
+Controllers continuously compare desired state with actual infrastructure state.
+
+The AWS Load Balancer Controller itself runs as a Kubernetes workload inside:
+
+kube-system namespace
+
+The controller was installed through Helm and authenticated securely using:
+
+IRSA (IAM Roles for Service Accounts)
+
+instead of static AWS credentials.
+
+This established secure identity-based authentication between Kubernetes workloads and AWS APIs.
+
+Stage 3 — HTTPS, TLS, and ACM Architecture
+
+The third stage focused on production HTTPS architecture and TLS fundamentals.
+
+Core understanding established:
+
+HTTP traffic is plain text and insecure.
+
+Without HTTPS:
+
+credentials can be intercepted
+session tokens can be stolen
+traffic can be modified during transmission
+
+HTTPS was studied as a transport-layer security mechanism providing:
+
+Encryption
+Integrity
+Authenticity
+
+TLS certificates were understood as digital trust identities that validate server ownership and establish encrypted communication.
+
+The architecture studied:
+
+Browser
+↓ HTTPS
+AWS ALB
+↓
+TLS Handshake + Certificate Validation
+↓
+Traffic Decryption
+↓
+Ingress Routing
+↓
+Kubernetes Services
+↓
+Pods
+
+AWS Certificate Manager (ACM) concepts learned:
+
+ACM provides free TLS certificates for AWS-integrated services.
+Certificates automate expiration and renewal management.
+Production systems centralize TLS termination at the load balancer layer.
+Pod-level certificate management introduces operational complexity.
+
+A major production concept learned:
+
+TLS termination is commonly centralized at ingress/load-balancer layers.
+Stage 4 — Production Ingress Design Patterns
+
+The fourth stage focused on modern ingress design patterns used in production Kubernetes environments.
+
+The complete external request lifecycle studied:
+
+User Browser
+↓
+DNS Resolution
+↓
+AWS ALB
+↓
+HTTPS Validation
+↓
+Ingress Rules
+↓
+Kubernetes Service
+↓
+Endpoints
+↓
+Healthy Pods
+
+Production routing strategies learned:
+
+Host-Based Routing
+api.company.com → API Service
+admin.company.com → Admin Service
+Path-Based Routing
+/api/* → Backend API
+/admin/* → Admin Service
+/images/* → Media Service
+
+Additional production ingress concepts studied:
+
+Internet-facing vs internal ALBs
+Health-check-based traffic routing
+Stable ingress endpoints
+Service abstraction over pod lifecycle
+Security group ingress management
+Backend target health validation
+Infrastructure abstraction from clients
+
+Critical production understanding gained:
+
+Clients should only depend on stable public domains, never backend infrastructure topology.
+Stage 5 — Practical Implementation on AWS EKS
+
+The final stage focused on implementing the complete ingress architecture practically on AWS EKS.
+
+Infrastructure provisioning completed using Terraform:
+
+VPC
+Multi-AZ public subnets
+EKS control plane
+Managed node groups
+IAM integration
+Kubernetes addons
+
+Movie API deployment was successfully restored using Helm:
+
+helm upgrade --install movie-api .
+
+The AWS Load Balancer Controller installation process included:
+
+Helm repository configuration
+IAM policy creation
+IRSA setup through eksctl
+Controller deployment in kube-system namespace
+
+Ingress resource created:
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+After applying the ingress:
+
+AWS ALB was dynamically provisioned
+listeners were created automatically
+target groups were configured
+pod IPs were registered as healthy targets
+ingress routing became publicly accessible
+
+Successfully verified public application access through ALB DNS endpoint:
+
+http://k8s-default-movieapi-00f02c1667-148884491.ap-south-1.elb.amazonaws.com
+
+Successful response received:
+
+{"message":"Movie Sentiment API 🚀 (v3 deployed)","version":"1.0.2","docs":"/docs"}
+
+This validated:
+
+ALB provisioning
+ingress reconciliation
+Kubernetes service routing
+endpoint registration
+pod health validation
+internet-facing traffic accessibility
+Final Production Architecture Achieved
+Internet
+↓
+AWS Application Load Balancer (ALB)
+↓
+Ingress Rules
+↓
+Kubernetes Service Abstraction
+↓
+Healthy EKS Pods
+↓
+Movie API Application
+Key Production Concepts Learned
+Kubernetes Architecture
+Declarative desired state model
+Reconciliation loops
+Controller-driven infrastructure automation
+Ephemeral compute infrastructure
+Service abstraction
+Ingress architecture
+Infrastructure decoupling
+AWS Infrastructure
+Application Load Balancer architecture
+Target group registration
+Security group automation
+IRSA authentication model
+Public ingress networking
+Multi-AZ ingress exposure
+Production Networking
+Host-based routing
+Path-based routing
+Health-check-driven traffic management
+Stable ingress endpoints
+Backend service abstraction
+Internet-facing vs internal ingress
+Security and HTTPS
+TLS architecture
+HTTPS termination
+ACM certificate management
+Identity-based AWS authentication
+Infrastructure attack surface reduction
+Centralized ingress security
+Final Engineering Understanding
+
+The most important architectural understanding from Day 90:
+
+Kubernetes objects define declarative desired behavior, while controllers continuously reconcile actual cloud infrastructure to match that desired state.
+
+And:
+
+Modern cloud-native platforms separate infrastructure intent from infrastructure implementation through controller-driven automation and declarative orchestration.
+
+Day 90 successfully established a production-style ingress foundation on AWS EKS using Kubernetes Ingress, AWS Load Balancer Controller, ALB reconciliation, and internet-facing traffic routing architecture.
+
+---
+
 
 **Commands Used:**
 ```bash
