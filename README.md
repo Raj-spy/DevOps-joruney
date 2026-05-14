@@ -2682,6 +2682,248 @@ Modern cloud-native platforms separate infrastructure intent from infrastructure
 
 Day 90 successfully established a production-style ingress foundation on AWS EKS using Kubernetes Ingress, AWS Load Balancer Controller, ALB reconciliation, and internet-facing traffic routing architecture.
 
+
+Day 90 — Practical Implementation Flow
+Objective
+
+Designed and implemented a production-style internet-facing Kubernetes ingress architecture on AWS EKS using:
+
+Kubernetes Ingress
+AWS Load Balancer Controller
+IRSA (IAM Roles for Service Accounts)
+Helm
+AWS ALB
+Declarative infrastructure reconciliation
+
+The goal of this implementation was to expose the Movie API securely and dynamically through an AWS Application Load Balancer while understanding the complete ingress reconciliation lifecycle used in modern cloud-native production systems.
+
+High-Level Production Architecture
+                    ┌────────────────────┐
+                    │    Internet User   │
+                    └─────────┬──────────┘
+                              │
+                              ▼
+                 ┌─────────────────────────┐
+                 │ AWS Application Load    │
+                 │ Balancer (ALB)          │
+                 │ Internet Facing         │
+                 └─────────┬───────────────┘
+                           │
+                           ▼
+              ┌────────────────────────────┐
+              │ Kubernetes Ingress Rules   │
+              │ Host / Path Based Routing  │
+              └──────────┬─────────────────┘
+                         │
+                         ▼
+               ┌─────────────────────────┐
+               │ Kubernetes Service      │
+               │ Stable Internal Access  │
+               └──────────┬──────────────┘
+                          │
+          ┌───────────────┴────────────────┐
+          ▼                                ▼
+┌──────────────────┐           ┌──────────────────┐
+│ Movie API Pod 1  │           │ Movie API Pod 2  │
+│ Healthy Endpoint │           │ Healthy Endpoint │
+└──────────────────┘           └──────────────────┘
+Kubernetes Reconciliation Flow
+
+The complete ingress provisioning lifecycle was driven through Kubernetes reconciliation loops.
+
+Ingress YAML Applied
+        │
+        ▼
+Stored in Kubernetes API Server
+        │
+        ▼
+AWS Load Balancer Controller Watches Changes
+        │
+        ▼
+Controller Calls AWS APIs
+        │
+        ▼
+ALB Provisioned Automatically
+        │
+        ▼
+Listeners + Target Groups Created
+        │
+        ▼
+Pod IPs Registered as Targets
+        │
+        ▼
+Health Checks Validated
+        │
+        ▼
+Public Traffic Routing Activated
+Practical Implementation Steps
+Step 1 — Provision AWS EKS Infrastructure
+
+Created:
+
+VPC
+Multi-AZ public subnets
+EKS control plane
+Managed node groups
+Networking resources
+terraform apply
+Step 2 — Configure kubectl Access
+
+Connected local Kubernetes client to EKS cluster.
+
+aws eks update-kubeconfig --region ap-south-1 --name raj-eks-cluster
+Step 3 — Verify Cluster Health
+
+Validated successful worker node registration.
+
+kubectl get nodes
+
+Expected:
+
+STATUS = Ready
+Step 4 — Deploy Movie API using Helm
+
+Deployed Kubernetes workloads through reusable Helm templates.
+
+helm upgrade --install movie-api .
+Step 5 — Verify Application Pods and Services
+kubectl get pods
+kubectl get svc
+
+Validated:
+
+healthy pods
+internal service abstraction
+backend readiness
+AWS Load Balancer Controller Setup
+Step 6 — Verify eksctl Installation
+eksctl version
+Step 7 — Download Official IAM Policy
+curl -O https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+Step 8 — Create IAM Policy
+aws iam create-policy \
+  --policy-name AWSLoadBalancerControllerIAMPolicy \
+  --policy-document file://iam_policy.json
+
+Purpose:
+
+Allow controller-managed ALB lifecycle operations.
+
+Step 9 — Configure IRSA Authentication
+
+Implemented production-grade AWS authentication without static credentials.
+
+eksctl create iamserviceaccount \
+  --cluster=raj-eks-cluster \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller \
+  --role-name AmazonEKSLoadBalancerControllerRole \
+  --attach-policy-arn=arn:aws:iam::257394469486:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve
+Secure Authentication Flow
+Controller Pod
+      │
+      ▼
+Kubernetes Service Account
+      │
+      ▼
+IAM Role (IRSA)
+      │
+      ▼
+Temporary AWS Credentials
+      │
+      ▼
+AWS API Access
+Controller Installation
+Step 10 — Add AWS Helm Repository
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+Step 11 — Install AWS Load Balancer Controller
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=raj-eks-cluster \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller \
+  --set region=ap-south-1 \
+  --set vpcId=$(aws eks describe-cluster --name raj-eks-cluster --query "cluster.resourcesVpcConfig.vpcId" --output text)
+
+Validated controller health:
+
+kubectl get pods -n kube-system
+Ingress Implementation
+Step 12 — Create Ingress Resource
+
+Configured:
+
+internet-facing ALB
+ALB ingress class
+IP target mode
+backend service routing
+kubectl apply -f ingress.yaml
+Public Traffic Flow
+Internet Request
+        │
+        ▼
+AWS ALB
+        │
+        ▼
+Ingress Rules
+        │
+        ▼
+Kubernetes Service
+        │
+        ▼
+Healthy Movie API Pods
+ALB Provisioning Verification
+Step 13 — Validate Ingress
+kubectl get ingress
+kubectl describe ingress
+Public Application Access
+
+Successfully exposed Movie API publicly through AWS ALB.
+
+http://<ALB-DNS>
+
+Response:
+
+{
+  "message": "Movie Sentiment API 🚀 (v3 deployed)",
+  "version": "1.0.2",
+  "docs": "/docs"
+}
+
+Key Production Concepts Learned
+
+Kubernetes Architecture
+Declarative desired state
+Reconciliation loops
+Controller-driven automation
+Service abstraction
+Ephemeral workloads
+AWS Infrastructure
+Application Load Balancer provisioning
+Target group registration
+IRSA authentication
+Dynamic infrastructure reconciliation
+Production Networking
+Internet-facing ingress architecture
+Host/path-based routing
+Stable public ingress endpoints
+Backend health validation
+Infrastructure abstraction
+Security
+Identity-based AWS authentication
+Elimination of static AWS credentials
+Centralized ingress management
+TLS termination architecture understanding
+
+
+Final Engineering Understanding
+
+Kubernetes objects define desired infrastructure behavior, while controllers continuously reconcile actual cloud infrastructure to match that declarative state.
+
+Modern cloud-native systems rely on controller-driven reconciliation to automate infrastructure lifecycle management dynamically and reliably.
+
 ---
 
 
