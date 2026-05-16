@@ -2926,6 +2926,154 @@ Modern cloud-native systems rely on controller-driven reconciliation to automate
 
 ---
 
+### Day 91: Route53 + custom domain (free tier)
+
+TOPIC
+Route53 + Custom Domain + Production DNS Architecture
+
+WHAT I LEARNED TODAY
+
+DNS Fundamentals
+
+DNS converts domain names into IP addresses
+
+Browsers use DNS lookup to locate infrastructure
+DNS is global internet routing infrastructure
+
+Core DNS Concepts
+
+Domain
+Hosted Zone
+A Record
+AAAA Record
+CNAME Record
+MX Record
+TXT Record
+TTL
+DNS Propagation
+Subdomains
+
+
+Route53 Concepts
+AWS managed DNS service
+DNS traffic routing
+Health checks
+Failover routing
+Weighted routing
+Latency-based routing
+Multi-region traffic management
+
+Production Infrastructure Concepts
+
+HTTPS + SSL/TLS
+Secure encrypted communication
+SSL certificates
+Secure API traffic
+Browser trust validation
+Load Balancer
+
+Traffic distribution
+Horizontal scaling
+High availability
+Fault tolerance
+Rolling deployments
+CDN
+
+Global edge caching
+Lower latency
+Faster static asset delivery
+Reduced backend load
+
+Failover + Multi-Region
+Disaster recovery
+Automatic traffic rerouting
+Regional redundancy
+Global application resilience
+
+WAF
+Protection against malicious traffic
+SQL injection filtering
+XSS protection
+DDoS mitigation concepts
+
+Reverse Proxy
+Nginx reverse proxy architecture
+SSL termination
+Path-based routing
+Security headers
+Request forwarding
+
+Redis Caching
+In-memory caching
+Faster API responses
+Reduced database load
+Better scalability
+
+Canary Deployment
+Gradual rollout strategy
+Traffic shifting
+Safe deployments
+Rollback strategy
+
+PRACTICAL COMPLETED
+
+Free DNS Practice Using DuckDNS
+Created free custom domain
+Mapped DuckDNS domain to AWS EC2 public IP
+Accessed deployed application using domain
+
+PRACTICAL FLOW IMPLEMENTED
+
+DuckDNS Domain
+↓
+DNS Resolution
+↓
+AWS EC2 Public IP
+↓
+Docker Containers
+↓
+Frontend + Backend Application
+
+
+# REAL PRODUCTION ARCHITECTURE UNDERSTOOD
+
+User
+↓
+DNS (Route53)
+↓
+CDN
+↓
+WAF
+↓
+Load Balancer
+↓
+Reverse Proxy
+↓
+Containers / Kubernetes
+↓
+Redis Cache
+↓
+Database
+
+
+MOST IMPORTANT UNDERSTANDING FROM TODAY
+
+# DNS is not just domain mapping.
+# DNS is internet-scale traffic routing infrastructure.
+ENGINEERING MINDSET LEARNED
+
+Infrastructure is designed around:
+- scalability
+- security
+- availability
+- latency reduction
+- fault tolerance
+- deployment safety
+- 
+STATUS
+Day 91 Successfully Completed
+
+
 
 **Commands Used:**
 ```bash
