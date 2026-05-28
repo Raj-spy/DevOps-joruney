@@ -4325,6 +4325,502 @@ This is one of the core foundations of:
 
 ---
 
+# Day 94 — EBS CSI Driver + Dynamic Persistent Volumes on EKS
+
+## Objective
+
+Today’s goal was not just to “use storage in Kubernetes,” but to deeply understand how production-grade persistent storage actually works inside a cloud-native Kubernetes environment.
+
+The focus of this learning session was:
+
+* Understanding Stateful vs Stateless architecture
+* Learning Kubernetes Persistent Volumes deeply
+* Implementing AWS EBS CSI Driver on EKS
+* Verifying dynamic storage provisioning
+* Understanding how Kubernetes talks to AWS APIs
+* Testing real persistence across pod recreation
+* Understanding storage lifecycle and reclaim policies
+* Learning production-grade storage orchestration behavior
+
+This session was treated like a real platform engineering task, not a tutorial exercise.
+
+---
+
+# Why This Topic Matters
+
+Containers are temporary.
+
+Pods die.
+Nodes terminate.
+Spot instances disappear.
+Deployments recreate workloads constantly.
+
+If application data lives inside containers or node disks:
+
+* data gets lost during restart
+* recovery becomes impossible
+* stateful applications fail
+
+Modern cloud-native systems solve this by separating:
+
+* Compute lifecycle
+* Storage lifecycle
+
+This is the foundation of:
+
+* databases on Kubernetes
+* persistent microservices
+* distributed systems
+* production-grade Stateful workloads
+
+---
+
+# Core Learning Goal
+
+The primary concept learned today was:
+
+```text
+Pods are disposable.
+Persistent storage must survive independently.
+```
+
+This is achieved through:
+
+* PersistentVolume (PV)
+* PersistentVolumeClaim (PVC)
+* StorageClass
+* CSI Driver
+
+---
+
+# Infrastructure Used
+
+The lab was implemented on a real AWS EKS cluster created through Terraform.
+
+Existing infrastructure already included:
+
+* Custom VPC
+* Multi-AZ public subnets
+* Internet Gateway
+* Route tables
+* EKS cluster
+* On-Demand node group
+* Spot node group
+
+---
+
+# Production Architecture Implemented
+
+```text
+                           ┌──────────────────────┐
+                           │   Kubernetes Pod     │
+                           │   (storage-test)     │
+                           └──────────┬───────────┘
+                                      │
+                                      │ mounts
+                                      ▼
+                           ┌──────────────────────┐
+                           │        PVC           │
+                           │   raj-pvc (4Gi)      │
+                           └──────────┬───────────┘
+                                      │ requests
+                                      ▼
+                           ┌──────────────────────┐
+                           │    StorageClass      │
+                           │    gp3-storage       │
+                           └──────────┬───────────┘
+                                      │ triggers
+                                      ▼
+                           ┌──────────────────────┐
+                           │   EBS CSI Driver     │
+                           │ (Controller + Node)  │
+                           └──────────┬───────────┘
+                                      │ AWS API Calls
+                                      ▼
+                           ┌──────────────────────┐
+                           │   AWS EBS Volume     │
+                           │   gp3 - 4Gi          │
+                           └──────────┬───────────┘
+                                      │ attached to
+                                      ▼
+                           ┌──────────────────────┐
+                           │   EKS Worker Node    │
+                           │   (EC2 Instance)     │
+                           └──────────────────────┘
+```
+
+---
+
+# Step-by-Step Work Completed
+
+## 1. Fixed EKS Connectivity and Authentication
+
+The session initially started with Kubernetes API access failures.
+
+Observed errors:
+
+* DNS resolution failure
+* stale kubeconfig endpoint
+* EKS IAM authentication issue
+* RBAC authorization failure
+
+Debugging steps performed:
+
+* verified cluster existence
+* regenerated kubeconfig
+* validated AWS token generation
+* diagnosed IAM authentication flow
+* added EKS access entry
+* granted cluster admin access
+
+This helped understand:
+
+```text
+AWS IAM Authentication != Kubernetes Authorization
+```
+
+Deep understanding gained:
+
+* kubeconfig internals
+* EKS token-based auth
+* IAM-to-Kubernetes access mapping
+* control plane connectivity debugging
+
+---
+
+# 2. Enabled Secure IAM Access using IRSA
+
+The EBS CSI driver requires AWS permissions to:
+
+* create EBS volumes
+* attach volumes
+* detach volumes
+* manage storage lifecycle
+
+Instead of insecure static credentials, production-grade IAM Roles for Service Accounts (IRSA) was implemented.
+
+Implemented:
+
+* OIDC provider integration
+* dedicated IAM role
+* least-privilege permissions
+* secure service account access
+
+This introduced:
+
+* secure workload identity
+* cloud-native IAM integration
+* production-grade Kubernetes security practices
+
+---
+
+# 3. Installed AWS EBS CSI Driver
+
+The following components were successfully deployed:
+
+## Controller Pods
+
+Responsible for:
+
+* talking to AWS APIs
+* provisioning EBS
+* attachment operations
+* lifecycle orchestration
+
+## Node Pods
+
+Responsible for:
+
+* mounting block devices
+* node-level storage operations
+* filesystem attachment
+
+Verification completed:
+
+```bash
+kubectl get pods -n kube-system
+```
+
+Observed:
+
+* ebs-csi-controller
+* ebs-csi-node
+
+Both successfully running.
+
+---
+
+# 4. Created StorageClass
+
+A production-aware StorageClass was implemented:
+
+Features:
+
+* gp3 EBS type
+* dynamic provisioning
+* WaitForFirstConsumer scheduling
+* automatic cleanup using reclaimPolicy
+
+Important concept learned:
+
+```text
+StorageClass defines HOW storage should be provisioned.
+PVC defines WHAT storage is requested.
+```
+
+---
+
+# 5. Implemented Dynamic PVC Provisioning
+
+A PersistentVolumeClaim requesting:
+
+* 4Gi storage
+* ReadWriteOnce access
+
+was created.
+
+Kubernetes automatically:
+
+* triggered CSI driver
+* provisioned EBS
+* created PersistentVolume
+* attached storage to node
+
+No manual AWS volume creation was required.
+
+This was the major conceptual breakthrough of the session.
+
+---
+
+# 6. Verified Real AWS Infrastructure Creation
+
+The AWS Console was inspected directly.
+
+Observed:
+
+* dynamically created EBS volume
+* correct gp3 type
+* correct size
+* active attachment to worker node
+
+This connected Kubernetes abstractions with real cloud infrastructure behavior.
+
+Major realization:
+
+```text
+Kubernetes was orchestrating actual AWS infrastructure automatically.
+```
+
+---
+
+# 7. Tested Stateful Persistence
+
+Inside the pod:
+
+```bash
+echo "raj-persistent-data" > /data/test.txt
+```
+
+Then:
+
+* pod deleted
+* pod recreated
+* data verified again
+
+Result:
+
+* data successfully survived pod recreation
+
+This proved:
+
+* storage lifecycle independent from pod lifecycle
+* persistence works across workload recreation
+
+This was the most important practical verification of the day.
+
+---
+
+# Important Infrastructure Insight Learned
+
+A major architectural distinction was learned today:
+
+## Node Root Storage (20Gi EBS)
+
+Used for:
+
+* Operating system
+* kubelet
+* container runtime
+* container images
+
+Lifecycle:
+
+* tied to EC2 instance
+
+## PVC Storage (4Gi EBS)
+
+Used for:
+
+* application persistent data
+
+Lifecycle:
+
+* independent from pod/node lifecycle
+
+This clarified:
+
+* infrastructure storage
+* workload storage
+* persistent architecture separation
+
+---
+
+# Production Concepts Learned
+
+## Stateful vs Stateless
+
+### Stateless
+
+* compute layer disposable
+* no critical local state
+* easy autoscaling
+* easy recovery
+
+Examples:
+
+* frontend APIs
+* nginx
+* backend services
+
+### Stateful
+
+* persistent data required
+* data survives restart
+* requires durable storage
+
+Examples:
+
+* databases
+* queues
+* file storage
+
+---
+
+# Why WaitForFirstConsumer Matters
+
+This was one of the most important concepts learned.
+
+Without it:
+
+* EBS may be created in wrong AZ
+* pod scheduling may fail
+
+With it:
+
+* Kubernetes waits until pod placement decision
+* then creates EBS in correct availability zone
+
+This is production-aware storage scheduling behavior.
+
+---
+
+# Production Failures Simulated Mentally
+
+Several real-world failure scenarios were analyzed:
+
+* node failure
+* spot interruption
+* wrong reclaim policy
+* orphaned EBS volumes
+* Pending PVC debugging
+* AZ mismatch issues
+
+This built:
+
+* operational thinking
+* debugging intuition
+* infrastructure troubleshooting mindset
+
+---
+
+# Key Engineering Learnings
+
+## 1. Storage Must Outlive Compute
+
+```text
+Pods are temporary.
+Persistent data must not be.
+```
+
+---
+
+## 2. Kubernetes Is an Infrastructure Orchestrator
+
+Kubernetes was not just managing containers.
+
+It was dynamically:
+
+* provisioning cloud disks
+* attaching block storage
+* mounting filesystems
+* managing storage lifecycle
+
+---
+
+## 3. Cloud-Native Systems Separate Layers
+
+```text
+Compute Layer != Persistence Layer
+```
+
+This is foundational architecture thinking.
+
+---
+
+# Final Workflow Learned
+
+```text
+PVC Created
+      ↓
+StorageClass Selected
+      ↓
+CSI Driver Triggered
+      ↓
+AWS EBS Volume Created
+      ↓
+PV Auto-Created
+      ↓
+Volume Attached to Node
+      ↓
+Pod Mounted Storage
+      ↓
+Data Persisted Across Restarts
+```
+
+---
+
+# Practical Verification Completed
+
+Successfully verified:
+
+✅ Dynamic EBS provisioning
+✅ CSI driver integration
+✅ IRSA secure authentication
+✅ PersistentVolume auto-creation
+✅ Real AWS EBS attachment
+✅ Stateful persistence behavior
+✅ Pod recreation recovery
+✅ Kubernetes ↔ AWS orchestration
+✅ Node storage vs workload storage separation
+
+---
+
+# Key Learning
+
+Today’s biggest learning was understanding that Kubernetes is not merely a container scheduler — it is a distributed infrastructure orchestration platform capable of dynamically managing cloud storage lifecycles, persistence, and workload recovery in production environments.
+
+---
+
 
 **Commands Used:**
 ```bash
