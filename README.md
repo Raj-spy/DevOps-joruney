@@ -5146,6 +5146,307 @@ Security
 
 Use least-privilege IAM permissions and domain filtering.
 
+---
+
+# Day 96 — Load Testing & Performance Investigation
+
+## Environment
+
+```text
+Platform      : Kubernetes (Kind)
+Application   : Movie Sentiment API
+Replicas      : 1 → 3
+Cache Layer   : Redis
+Load Tool     : k6
+```
+
+---
+
+## Architecture
+
+```text
+k6
+ │
+ ▼
+Port Forward
+ │
+ ▼
+movie-service
+ │
+ ├── movie-pod-1
+ ├── movie-pod-2
+ └── movie-pod-3
+ │
+ ▼
+Redis
+ │
+ ▼
+Sentiment Analysis Engine
+```
+
+---
+
+# Test 1 — Static Endpoint (/)
+
+### Objective
+
+Measure baseline cluster and networking performance.
+
+### Results
+
+```text
+RPS            : ~221 req/sec
+Avg Latency    : 449ms
+P95 Latency    : 594ms
+Error Rate     : 0%
+```
+
+### Analysis
+
+System handled traffic comfortably.
+
+No application processing involved.
+
+This result only measures:
+
+* Kubernetes networking
+* Service routing
+* FastAPI response handling
+
+Not actual business logic.
+
+---
+
+# Test 2 — Business Endpoint (/analyze)
+
+### Objective
+
+Measure real application performance.
+
+### Endpoint Flow
+
+```text
+Request
+ ↓
+Validation
+ ↓
+Redis Lookup
+ ↓
+Sentiment Analysis
+ ↓
+Redis Store
+ ↓
+Response
+```
+
+### Results
+
+```text
+RPS            : ~60 req/sec
+Avg Latency    : 1.64 sec
+P95 Latency    : 11.2 sec
+Error Rate     : 0%
+```
+
+### Analysis
+
+Compared to root endpoint:
+
+```text
+221 RPS
+ ↓
+60 RPS
+```
+
+Throughput dropped ~73%.
+
+Business logic became the bottleneck.
+
+No failures occurred.
+
+System was slow but stable.
+
+---
+
+# Incident Investigation
+
+### Symptom
+
+```text
+500 Internal Server Error
+```
+
+### Root Cause Chain
+
+```text
+Movie API
+ ↓
+Redis Dependency
+ ↓
+Redis Pod Pending
+ ↓
+PVC Missing
+ ↓
+StorageClass Mismatch
+ ↓
+PVC Name Mismatch
+```
+
+### Resolution
+
+* Fixed StorageClass
+* Corrected PVC configuration
+* Redis became healthy
+* Application recovered
+
+---
+
+# Scaling Experiment
+
+### Change
+
+```text
+1 Pod
+ ↓
+3 Pods
+```
+
+### Verification
+
+```text
+movie-service endpoints:
+
+10.244.0.13:8000
+10.244.0.17:8000
+10.244.0.18:8000
+```
+
+Load balancing confirmed.
+
+---
+
+# High Concurrency Test
+
+### Configuration
+
+```text
+100 Virtual Users
+30 Seconds
+```
+
+### Result
+
+```text
+EOF Errors
+Very High Latency
+100% Request Failures
+```
+
+### Investigation
+
+Verified:
+
+```text
+Pods Healthy      ✅
+Redis Healthy     ✅
+Service Healthy   ✅
+Endpoints Healthy ✅
+No Restarts       ✅
+No OOM Events     ✅
+```
+
+### Conclusion
+
+Failure was NOT caused by:
+
+* Kubernetes
+* Pod crashes
+* Redis outage
+* Service misconfiguration
+
+Most likely bottlenecks:
+
+```text
+Port Forward Saturation
+Worker Saturation
+CPU Constraints
+Request Queueing
+```
+
+---
+
+# Capacity Observed
+
+Based on current environment:
+
+```text
+Static Endpoint Capacity
+≈ 220 RPS
+
+Business Endpoint Capacity
+≈ 60 RPS
+```
+
+### Important Note
+
+This is NOT the maximum application capacity.
+
+This is only the verified capacity observed under:
+
+```text
+3 Pods
+2 Workers Per Pod
+Redis Cache
+Kind Cluster
+Port Forward Access
+```
+
+Further testing required to determine true saturation point.
+
+---
+
+# Key Engineering Learnings
+
+1. Healthy Pods ≠ Healthy User Experience
+
+2. Health Endpoint Performance ≠ Business Endpoint Performance
+
+3. More Pods ≠ More Performance
+
+4. Performance = Slowest Component
+
+5. Measure Before Scaling
+
+6. Never Assume The Bottleneck
+
+---
+
+# Final Outcome
+
+Successfully completed:
+
+✅ Application Deployment
+
+✅ Redis Deployment
+
+✅ PVC & Storage Troubleshooting
+
+✅ Service Verification
+
+✅ Endpoint Verification
+
+✅ Load Testing
+
+✅ Scaling Experiment
+
+✅ Performance Investigation
+
+✅ Production-Style Root Cause Analysis
+
+This exercise evolved from simple load testing into a complete performance engineering and troubleshooting workflow.
+
+---
+
 **Commands Used:**
 ```bash
 docker-compose up -d --build
