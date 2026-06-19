@@ -6327,6 +6327,346 @@ Pending indicates scheduling failure before the container starts. CrashLoopBackO
 
 ---
 
+# Day 101 – EKS Upgrade Strategy Testing
+
+## Executive Summary
+
+Today I studied production-grade Amazon EKS upgrade strategies and learned how platform engineering teams perform Kubernetes version upgrades while maintaining application availability. The focus was understanding upgrade workflows, component compatibility, rolling node replacement, workload protection mechanisms, and validation procedures required to safely upgrade production clusters.
+
+The primary objective was to understand how upgrades impact the EKS control plane, worker nodes, cluster addons, and running workloads, along with the strategies used to minimize downtime and operational risk.
+
+---
+
+# Why This Matters
+
+Upgrading Kubernetes in production is not simply changing a version number.
+
+A cluster contains multiple dependent components:
+
+* EKS Control Plane
+* Managed Node Groups
+* CoreDNS
+* kube-proxy
+* EBS CSI Driver
+* Application Workloads
+
+A poorly planned upgrade can result in:
+
+* Application downtime
+* Node failures
+* Scheduling issues
+* Networking outages
+* Storage disruptions
+
+Production engineers must understand how to safely upgrade clusters while ensuring workloads remain available throughout the process.
+
+---
+
+# Architecture Overview
+
+```text id="kix3np"
+EKS Cluster
+├── Control Plane
+├── Managed Node Groups
+├── CoreDNS
+├── kube-proxy
+├── EBS CSI Driver
+└── Applications
+```
+
+---
+
+# Upgrade Workflow
+
+```text id="r5bqqg"
+Control Plane Upgrade
+        ↓
+Addon Upgrade
+(CoreDNS, kube-proxy, EBS CSI)
+        ↓
+Managed Node Group Upgrade
+        ↓
+Application Validation
+```
+
+This sequence follows AWS and Kubernetes upgrade best practices.
+
+---
+
+# Core Concepts Learned
+
+## EKS Control Plane Upgrade
+
+The control plane contains:
+
+* API Server
+* Scheduler
+* Controller Manager
+
+AWS manages these components.
+
+The control plane should always be upgraded before worker nodes.
+
+---
+
+## Addon Compatibility
+
+Critical cluster addons include:
+
+* CoreDNS
+* kube-proxy
+* EBS CSI Driver
+
+These components must remain compatible with the Kubernetes version running in the cluster.
+
+Failure to update addons can result in:
+
+* DNS failures
+* Networking issues
+* Storage problems
+
+---
+
+## Managed Node Group Upgrade
+
+Node upgrades are performed using a rolling replacement strategy.
+
+Workflow:
+
+```text id="sqecsw"
+Create New Node
+        ↓
+Drain Existing Node
+        ↓
+Reschedule Workloads
+        ↓
+Terminate Old Node
+```
+
+This allows workloads to remain available during upgrades.
+
+---
+
+## Pod Disruption Budget (PDB)
+
+Pod Disruption Budgets protect applications during maintenance operations.
+
+Example:
+
+```yaml id="xbz9k7"
+minAvailable: 2
+```
+
+This ensures Kubernetes always keeps at least two replicas available during node upgrades.
+
+PDBs reduce the risk of downtime caused by workload eviction.
+
+---
+
+# Upgrade Strategies
+
+## Rolling Upgrade
+
+Most common approach.
+
+```text id="h6k94t"
+Node-by-Node Replacement
+```
+
+Advantages:
+
+* Minimal downtime
+* Controlled risk
+* Lower cost
+
+---
+
+## Blue-Green Upgrade
+
+```text id="l2fpz8"
+Old Cluster
+        ↓
+New Cluster
+        ↓
+Traffic Switch
+```
+
+Advantages:
+
+* Safest upgrade model
+* Easy rollback
+
+Disadvantages:
+
+* Higher infrastructure cost
+
+---
+
+## In-Place Upgrade
+
+Upgrade directly on existing infrastructure.
+
+Advantages:
+
+* Fast
+
+Disadvantages:
+
+* Higher operational risk
+
+---
+
+# Failure Scenarios Studied
+
+## Deprecated Kubernetes APIs
+
+Older API versions may be removed in newer Kubernetes releases.
+
+Impact:
+
+```text id="cw74ek"
+Deployment Failures
+```
+
+---
+
+## Addon Version Mismatch
+
+Examples:
+
+* Outdated CoreDNS
+* Outdated kube-proxy
+
+Impact:
+
+```text id="lms9y3"
+DNS Issues
+Networking Failures
+```
+
+---
+
+## Worker Node Upgrade Failure
+
+New nodes fail to register with the cluster.
+
+Impact:
+
+```text id="m9b6l8"
+Reduced Capacity
+Pending Pods
+```
+
+---
+
+## Missing Pod Disruption Budget
+
+Workloads may lose too many replicas during node maintenance.
+
+Impact:
+
+```text id="jv7jlwm"
+Application Downtime
+```
+
+---
+
+# Verification Checklist
+
+## Pre-Upgrade Validation
+
+```bash id="odw5gn"
+kubectl get nodes
+
+kubectl get pods -A
+
+kubectl get pdb -A
+```
+
+Verify:
+
+* Node health
+* Workload health
+* PDB availability
+
+---
+
+## Post-Upgrade Validation
+
+```bash id="b5t8qr"
+kubectl get nodes
+
+kubectl get pods -A
+
+kubectl get events
+```
+
+Verify:
+
+* Nodes are Ready
+* Pods are Running
+* Applications are healthy
+* Networking functions correctly
+* Storage remains operational
+
+---
+
+# Production Relevance
+
+Understanding EKS upgrade strategies is a critical skill for:
+
+* DevOps Engineers
+* Platform Engineers
+* Site Reliability Engineers
+* Cloud Engineers
+
+Production upgrades require planning, workload protection, compatibility validation, and post-upgrade verification to prevent outages.
+
+---
+
+# Key Learnings
+
+* EKS upgrades involve more than just the control plane.
+* Control plane upgrades should occur before worker node upgrades.
+* Cluster addons must remain version-compatible.
+* Rolling upgrades reduce operational risk.
+* Pod Disruption Budgets protect workload availability.
+* Replication and redundancy are critical during upgrades.
+* Validation before and after upgrades is essential.
+
+---
+
+# Interview Questions
+
+### What is the recommended EKS upgrade order?
+
+Control Plane → Addons → Node Groups → Application Validation.
+
+### Why upgrade the control plane first?
+
+Kubernetes supports worker nodes being temporarily one version behind the control plane.
+
+### How are worker nodes upgraded?
+
+Using rolling replacement where new nodes are created, workloads are moved, and old nodes are removed.
+
+### How do you prevent downtime during upgrades?
+
+Using multiple replicas, Pod Disruption Budgets, and rolling upgrade strategies.
+
+### What should be verified after an upgrade?
+
+Node health, workload status, networking, storage, addons, and application functionality.
+
+---
+
+# Summary
+
+Developed a strong understanding of production-safe EKS upgrade workflows, Kubernetes version compatibility, rolling node replacement strategies, workload protection mechanisms, and upgrade validation procedures used in cloud-native environments.
+
+---
+
+
 
 **Commands Used:**
 ```bash
