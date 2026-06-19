@@ -5850,6 +5850,483 @@ CloudWatch Container Insights is a foundational observability tool for AWS-nativ
 
 ---
 
+# Day 98-100 – Debug Lab 5: EKS Pod Pending → IAM and NodeGroup Troubleshooting
+
+# Executive Summary
+
+During Day 98-100, I focused on understanding one of the most common Kubernetes and Amazon EKS operational incidents: Pods remaining in the Pending state. Rather than viewing Pending pods as an application issue, I learned to analyze them as scheduling and infrastructure problems.
+
+The primary objective was to understand how Kubernetes scheduling works, how EKS worker nodes participate in workload execution, and how failures in NodeGroups, IAM permissions, cluster capacity, and scheduling constraints can prevent workloads from running successfully.
+
+I also studied a structured troubleshooting workflow that production engineers use to diagnose Pending pods by correlating scheduler events, node availability, resource requests, and cluster infrastructure status.
+
+---
+
+# Why This Matters
+
+In Kubernetes, a deployment being created successfully does not guarantee that an application will run.
+
+Before a container starts, Kubernetes must:
+
+1. Create the Pod object
+2. Evaluate scheduling requirements
+3. Find a suitable node
+4. Validate available resources
+5. Assign the workload
+
+If any step fails, the Pod remains in Pending state.
+
+Understanding Pending pod troubleshooting is critical because production outages often originate from infrastructure constraints rather than application code.
+
+---
+
+# Architecture Overview
+
+```text
+Developer
+    │
+    ▼
+kubectl apply
+    │
+    ▼
+Deployment
+    │
+    ▼
+ReplicaSet
+    │
+    ▼
+Pod Created
+    │
+    ▼
+Kubernetes Scheduler
+    │
+    ▼
+Find Suitable Node
+    │
+    ├── Success → Running
+    │
+    └── Failure → Pending
+```
+
+---
+
+# EKS Scheduling Dependency Chain
+
+```text
+Application Pod
+        │
+        ▼
+Kubernetes Scheduler
+        │
+        ▼
+Worker Node
+        │
+        ▼
+Managed NodeGroup
+        │
+        ▼
+EC2 Instance
+        │
+        ▼
+IAM Permissions
+        │
+        ▼
+EKS Control Plane
+```
+
+A failure anywhere in this chain can prevent workloads from running.
+
+---
+
+# Key Concepts Learned
+
+## What Does Pending Mean?
+
+A Pending Pod means:
+
+```text
+Pod Created Successfully
+But Not Scheduled Successfully
+```
+
+The container has not started.
+
+The application has not executed.
+
+No application logs exist yet.
+
+This is fundamentally different from:
+
+```text
+CrashLoopBackOff
+```
+
+where the container started and then failed.
+
+---
+
+## Kubernetes Scheduler Fundamentals
+
+The Kubernetes Scheduler is responsible for deciding where workloads run.
+
+The scheduler evaluates:
+
+* Node availability
+* Resource requests
+* Taints and tolerations
+* Affinity rules
+* Storage requirements
+
+If no suitable node exists, scheduling fails.
+
+---
+
+## Requests Drive Scheduling
+
+The scheduler evaluates:
+
+```yaml
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+```
+
+Scheduling decisions are based on requests, not limits.
+
+This is a critical concept for Kubernetes capacity planning.
+
+---
+
+## Node Capacity vs Allocatable Resources
+
+A node's physical resources are not fully available to workloads.
+
+Example:
+
+```text
+Node Capacity:
+4 CPU
+8Gi Memory
+
+Allocatable:
+3.8 CPU
+7.2Gi Memory
+```
+
+Kubernetes schedules using allocatable resources.
+
+---
+
+# Failure Scenarios Studied
+
+## Scenario 1 – NodeGroup Failure
+
+### Symptoms
+
+```text
+Pods remain Pending
+```
+
+### Investigation
+
+```bash
+kubectl get nodes
+```
+
+Possible output:
+
+```text
+No resources found
+```
+
+### Root Cause
+
+Worker nodes failed to join the cluster.
+
+Without registered nodes, workloads cannot be scheduled.
+
+### Resolution
+
+Restore or recreate the NodeGroup.
+
+Verify nodes become Ready.
+
+---
+
+## Scenario 2 – IAM Permission Failure
+
+### Symptoms
+
+```text
+Nodes launched
+Pods Pending
+```
+
+### Root Cause
+
+Worker nodes require IAM permissions to communicate with the EKS control plane.
+
+Missing policies can prevent successful cluster registration.
+
+Examples include:
+
+* AmazonEKSWorkerNodePolicy
+* AmazonEC2ContainerRegistryReadOnly
+* AmazonEKS_CNI_Policy
+
+### Resolution
+
+Correct IAM role permissions and allow nodes to rejoin the cluster.
+
+---
+
+## Scenario 3 – Insufficient Resources
+
+### Symptoms
+
+```text
+Pod Pending
+```
+
+Events:
+
+```text
+Insufficient CPU
+Insufficient Memory
+```
+
+### Root Cause
+
+The requested resources exceed cluster capacity.
+
+### Resolution
+
+Resize workload requests or increase available cluster capacity.
+
+---
+
+## Scenario 4 – Taints and Scheduling Constraints
+
+### Symptoms
+
+```text
+Pod Pending
+```
+
+Events:
+
+```text
+Node had taint
+```
+
+### Root Cause
+
+The scheduler found nodes but was prevented from scheduling due to missing tolerations.
+
+### Resolution
+
+Add matching tolerations or remove unnecessary taints.
+
+---
+
+# Production Debugging Workflow
+
+Whenever a pod remains Pending:
+
+## Step 1
+
+Inspect Pod Status
+
+```bash
+kubectl get pods
+```
+
+---
+
+## Step 2
+
+Inspect Scheduler Events
+
+```bash
+kubectl describe pod <pod-name>
+```
+
+Focus on:
+
+```text
+Events
+```
+
+Most scheduling failures are explained here.
+
+---
+
+## Step 3
+
+Verify Node Availability
+
+```bash
+kubectl get nodes
+```
+
+Confirm nodes are:
+
+```text
+Ready
+```
+
+---
+
+## Step 4
+
+Verify Resource Availability
+
+```bash
+kubectl describe node <node-name>
+```
+
+Inspect:
+
+* Capacity
+* Allocatable
+* Current workload usage
+
+---
+
+## Step 5
+
+Verify EKS Infrastructure
+
+```bash
+aws eks list-nodegroups
+```
+
+```bash
+aws eks describe-nodegroup
+```
+
+Confirm NodeGroups are healthy and active.
+
+---
+
+# Verification Commands
+
+Check pod status:
+
+```bash
+kubectl get pods
+```
+
+Describe pod:
+
+```bash
+kubectl describe pod <pod-name>
+```
+
+Check nodes:
+
+```bash
+kubectl get nodes
+```
+
+Inspect node resources:
+
+```bash
+kubectl describe node <node-name>
+```
+
+Inspect NodeGroup:
+
+```bash
+aws eks describe-nodegroup
+```
+
+---
+
+# Security Considerations
+
+Worker nodes should follow the principle of least privilege.
+
+Avoid attaching:
+
+```text
+AdministratorAccess
+```
+
+to node roles.
+
+Only required EKS policies should be granted.
+
+Misconfigured IAM permissions can cause operational failures while also increasing security risk.
+
+---
+
+# Production Relevance
+
+Pending pod troubleshooting is a core operational skill for:
+
+* DevOps Engineers
+* Cloud Engineers
+* Platform Engineers
+* Site Reliability Engineers
+
+Many Kubernetes incidents are not application failures but scheduling failures caused by infrastructure constraints, misconfigurations, or resource shortages.
+
+Understanding how to identify and resolve these issues significantly reduces incident resolution time.
+
+---
+
+# Key Learnings
+
+* Pending pods indicate scheduling failures, not application failures.
+* Scheduler events are the most valuable source of troubleshooting information.
+* Resource requests determine scheduling decisions.
+* Worker node availability directly affects workload execution.
+* IAM configuration can impact node registration and cluster health.
+* Infrastructure issues often appear as application outages.
+* Root cause analysis should always precede scaling or configuration changes.
+
+---
+
+# Interview Questions
+
+### What does a Pending pod mean?
+
+A Pending pod has been created successfully but has not yet been scheduled onto a node.
+
+### What is the first command you would run?
+
+```bash
+kubectl describe pod <pod-name>
+```
+
+Specifically inspect the Events section.
+
+### Can IAM issues cause Pending pods in EKS?
+
+Yes. Incorrect worker-node IAM permissions can prevent nodes from joining the cluster, leaving no schedulable capacity for workloads.
+
+### How would you verify NodeGroup health?
+
+Using:
+
+```bash
+aws eks describe-nodegroup
+```
+
+and:
+
+```bash
+kubectl get nodes
+```
+
+### What is the difference between Pending and CrashLoopBackOff?
+
+Pending indicates scheduling failure before the container starts. CrashLoopBackOff indicates the container started but repeatedly crashed.
+
+---
+
 
 **Commands Used:**
 ```bash
