@@ -1,7 +1,7 @@
 ## 📊 Progress
 
 ```
-█████████░░░░░ Day 89/180
+█████████░░░░░ Day 97/180
 ```
 
 | Phase | Days | Topics | Status |
@@ -10,7 +10,7 @@
 | Phase 1 | 15–23 | Docker + Git Production | ✅ Complete |
 | Phase 1 | 24–42 | Advanced Docker + Projects | ✅ Complete |
 | Phase 2 | 43–60 | Kubernetes + CI/CD | ✅ Complete |
-| Phase 2 | 60–90 | Kubernetes + AWS | In Progress |
+| Phase 2 | 60–100 | Kubernetes + AWS | In Progress |
 
 
 ---
@@ -5446,6 +5446,410 @@ Successfully completed:
 This exercise evolved from simple load testing into a complete performance engineering and troubleshooting workflow.
 
 ---
+
+# Day 97 – AWS CloudWatch Container Insights for EKS Monitoring and Troubleshooting
+
+## Executive Summary
+
+Today I explored AWS CloudWatch Container Insights and its role in monitoring, observability, and troubleshooting Kubernetes workloads running on Amazon EKS. The focus was understanding how metrics and logs are collected from nodes, pods, and containers, how CloudWatch Agent and Fluent Bit operate within a cluster, and how production teams use observability data to identify and resolve incidents.
+
+I also studied real-world debugging scenarios involving high CPU utilization, pod restarts, OOMKilled events, application latency, and infrastructure bottlenecks. The objective was not only to collect metrics but to learn how engineers correlate metrics, logs, and Kubernetes events to identify root causes during production incidents.
+
+---
+
+# Why This Matters
+
+Deploying applications is only one part of operating Kubernetes in production.
+
+Production engineers spend significant time answering questions such as:
+
+* Why is the application slow?
+* Why are pods restarting?
+* Which node is unhealthy?
+* When did the incident begin?
+* What changed before the outage?
+* Which component is causing resource pressure?
+
+Without observability, troubleshooting becomes guesswork.
+
+CloudWatch Container Insights provides visibility into cluster health, workload performance, resource utilization, and operational issues, enabling engineers to reduce Mean Time To Resolution (MTTR) during incidents.
+
+---
+
+# Architecture Overview
+
+```text
++----------------------+
+|      EKS Cluster     |
++----------+-----------+
+           |
+           v
++----------------------+
+| CloudWatch Agent     |
+| Fluent Bit           |
++----------+-----------+
+           |
+           v
++----------------------+
+| CloudWatch Logs      |
+| CloudWatch Metrics   |
++----------+-----------+
+           |
+           v
++----------------------+
+| Dashboards           |
+| Insights Queries     |
+| Alarms               |
++----------------------+
+```
+
+---
+
+# Components Studied
+
+## CloudWatch Agent
+
+Responsible for collecting infrastructure and workload metrics.
+
+Metrics collected include:
+
+* Node CPU utilization
+* Node memory utilization
+* Disk utilization
+* Network traffic
+* Pod resource consumption
+* Container resource consumption
+
+The CloudWatch Agent typically runs as a DaemonSet, ensuring one monitoring agent is deployed per node.
+
+---
+
+## Fluent Bit
+
+Responsible for log collection and forwarding.
+
+Sources include:
+
+* Container stdout
+* Container stderr
+* Application logs
+
+Logs are forwarded into CloudWatch Logs where they can be queried and analyzed.
+
+---
+
+## CloudWatch Metrics
+
+Provides visibility into:
+
+### Cluster Level
+
+* Total CPU usage
+* Total memory usage
+* Pod count
+* Node count
+
+### Node Level
+
+* CPU utilization
+* Memory utilization
+* Disk utilization
+* Network activity
+
+### Pod Level
+
+* CPU consumption
+* Memory consumption
+* Restart counts
+
+### Container Level
+
+* Container resource utilization
+* Application logs
+
+---
+
+# Production Incident Analysis
+
+## Scenario 1: High CPU Usage
+
+Observed Metrics:
+
+```text
+Node CPU = 95%
+Node Memory = 60%
+
+Pod A CPU = 300%
+Pod B CPU = 5%
+```
+
+### Initial Observation
+
+The cluster was not memory constrained.
+
+The primary indicator was excessive CPU consumption by Pod A.
+
+### Investigation Path
+
+1. Validate pod-level resource utilization
+2. Inspect application logs
+3. Review recent deployments
+4. Check request traffic patterns
+5. Verify CPU requests and limits
+6. Investigate external dependencies
+
+### Potential Root Causes
+
+* Traffic spike
+* Application bug
+* Infinite loop
+* Excessive retries
+* CPU throttling
+* Database latency
+
+---
+
+## Scenario 2: Database Timeout Leading to CPU Spike
+
+Observed Logs:
+
+```text
+Database connection timeout
+Database connection timeout
+Database connection timeout
+```
+
+### Analysis
+
+A database issue can indirectly increase application CPU usage.
+
+Example flow:
+
+```text
+Request arrives
+↓
+Database query fails
+↓
+Application retries
+↓
+More retries
+↓
+More exception handling
+↓
+More logging
+↓
+CPU usage increases
+```
+
+### Key Learning
+
+The component causing the incident is not always the component showing the highest resource utilization.
+
+Root cause analysis requires understanding dependency chains.
+
+---
+
+## Scenario 3: Pod Restart Investigation
+
+Observed Metrics:
+
+```text
+Node CPU = 20%
+Node Memory = 25%
+
+Pod Restart Count Increasing
+```
+
+### Analysis
+
+Healthy CPU and memory metrics indicate that resource exhaustion is unlikely.
+
+Investigation should shift toward:
+
+* Application crashes
+* Liveness probe failures
+* Startup probe failures
+* Missing secrets
+* Configuration issues
+* Dependency failures
+
+### Investigation Commands
+
+```bash
+kubectl describe pod <pod-name>
+
+kubectl logs --previous <pod-name>
+```
+
+### Key Learning
+
+Metrics indicate that a problem exists.
+
+Logs and events explain why it exists.
+
+---
+
+# Verification Commands
+
+Verify monitoring components:
+
+```bash
+kubectl get daemonset -A
+```
+
+Verify CloudWatch namespace:
+
+```bash
+kubectl get pods -n amazon-cloudwatch
+```
+
+Verify pod metrics:
+
+```bash
+kubectl top pods -A
+```
+
+Verify node metrics:
+
+```bash
+kubectl top nodes
+```
+
+Inspect application logs:
+
+```bash
+kubectl logs <pod-name>
+```
+
+Inspect pod events:
+
+```bash
+kubectl describe pod <pod-name>
+```
+
+---
+
+# Failure Scenarios Studied
+
+## CloudWatch Agent Failure
+
+Impact:
+
+* Metrics stop updating
+* Dashboards become stale
+
+Verification:
+
+```bash
+kubectl get pods -n amazon-cloudwatch
+```
+
+---
+
+## Fluent Bit Failure
+
+Impact:
+
+* Logs stop arriving
+* Metrics continue functioning
+
+Verification:
+
+```bash
+kubectl logs -n amazon-cloudwatch <fluent-bit-pod>
+```
+
+---
+
+## IAM / IRSA Misconfiguration
+
+Impact:
+
+* Metrics collection fails
+* Log forwarding fails
+
+Verification:
+
+```bash
+kubectl describe serviceaccount
+```
+
+---
+
+# Security Considerations
+
+Production logging systems must never expose:
+
+* Passwords
+* API Keys
+* JWT Tokens
+* Customer Data
+* Sensitive Credentials
+
+CloudWatch stores all received log data, making log hygiene a critical security requirement.
+
+---
+
+# Cost Optimization Considerations
+
+CloudWatch costs scale with:
+
+* Log ingestion volume
+* Log retention duration
+* Custom metrics
+* Query volume
+
+Production best practices include:
+
+* Appropriate retention policies
+* Reduced log verbosity
+* Removal of unnecessary debug logs
+* Archiving historical data
+
+---
+
+# Key Learnings
+
+* Monitoring is essential for operating Kubernetes in production.
+* Metrics identify symptoms, not root causes.
+* Logs and events provide the context needed for root cause analysis.
+* High CPU utilization does not always indicate a CPU problem.
+* Dependency failures can indirectly create resource pressure.
+* Observability significantly reduces troubleshooting time.
+* Production engineers correlate metrics, logs, and events before making infrastructure changes.
+
+---
+
+# Interview Questions
+
+### What is CloudWatch Container Insights?
+
+CloudWatch Container Insights is an AWS observability solution that collects metrics and logs from EKS clusters, nodes, pods, and containers to provide operational visibility and troubleshooting capabilities.
+
+### How are logs collected from EKS?
+
+Fluent Bit collects container stdout and stderr logs and forwards them to CloudWatch Logs.
+
+### How are metrics collected?
+
+CloudWatch Agent runs on cluster nodes and collects node, pod, and container metrics.
+
+### What would you investigate if a pod is restarting repeatedly?
+
+I would inspect pod events, container logs, probe configurations, resource utilization, dependency health, and restart reasons before making infrastructure changes.
+
+### Why is observability important?
+
+Observability enables engineers to detect issues quickly, understand system behavior, identify root causes, and reduce incident resolution time.
+
+---
+
+# Production Relevance
+
+CloudWatch Container Insights is a foundational observability tool for AWS-native Kubernetes environments. Understanding how to interpret metrics, analyze logs, and investigate incidents is a critical skill for DevOps Engineers, Platform Engineers, Site Reliability Engineers, and Cloud Engineers responsible for operating production infrastructure.
+
+---
+
 
 **Commands Used:**
 ```bash
