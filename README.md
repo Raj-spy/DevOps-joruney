@@ -6666,6 +6666,627 @@ Developed a strong understanding of production-safe EKS upgrade workflows, Kuber
 
 ---
 
+# Day 102 – Backup & Disaster Recovery with Velero and AWS S3
+
+## Executive Summary
+
+Day 102 focused on understanding, implementing, debugging, and validating Kubernetes backup and disaster recovery workflows using Velero and AWS S3.
+
+Unlike previous learning days that were mostly architecture and infrastructure focused, this day involved a complete end-to-end production-style backup lifecycle:
+
+* Deploying Velero
+* Configuring AWS S3 as backup storage
+* Troubleshooting failed backups
+* Performing Root Cause Analysis (RCA)
+* Fixing backup storage configuration
+* Creating successful backups
+* Simulating a disaster
+* Restoring workloads from backup
+* Verifying application recovery
+
+The most valuable learning was not Velero itself, but the production debugging process required to identify and resolve a failed backup system.
+
+---
+
+# Why This Matters
+
+Most engineers stop after seeing:
+
+```bash
+Backup Completed
+```
+
+Production engineers go one step further:
+
+```text
+Can I restore from this backup?
+```
+
+A backup is only valuable if it can successfully recover workloads during an outage, accidental deletion, cluster failure, or disaster event.
+
+This lab demonstrated the complete disaster recovery lifecycle from backup creation to workload restoration.
+
+---
+
+# Architecture
+
+```text
++----------------------+
+| Kubernetes Cluster   |
+| (Docker Desktop)     |
++----------+-----------+
+           |
+           |
+           v
++----------------------+
+| Velero Server        |
+| Backup Controller    |
++----------+-----------+
+           |
+           |
+           v
++----------------------+
+| AWS S3 Bucket        |
+| raj-velero-backups   |
++----------------------+
+```
+
+---
+
+# Disaster Recovery Workflow
+
+```text
+Deploy Workload
+        |
+        v
+Create Backup
+        |
+        v
+Store Backup in S3
+        |
+        v
+Simulate Disaster
+(Delete Namespace)
+        |
+        v
+Restore Backup
+        |
+        v
+Recover Application
+        |
+        v
+Verify Recovery
+```
+
+---
+
+# Hands-On Work Completed
+
+## 1. AWS Configuration
+
+Created:
+
+* IAM User for Velero
+* Access Key
+* Secret Access Key
+* AWS S3 Bucket
+
+Purpose:
+
+Provide a persistent backup storage destination outside the Kubernetes cluster.
+
+---
+
+## 2. Velero Installation
+
+Installed:
+
+* Velero CLI
+* Velero Server
+* AWS Velero Plugin
+
+Configured:
+
+```text
+Kubernetes Cluster
+↔
+Velero
+↔
+AWS S3
+```
+
+Verified:
+
+```bash
+kubectl get pods -n velero
+```
+
+Result:
+
+```text
+Velero Pod Running
+```
+
+---
+
+## 3. Created Test Workload
+
+Created:
+
+```bash
+kubectl create namespace demo
+```
+
+Created deployment:
+
+```bash
+kubectl create deployment nginx \
+--image=nginx \
+-n demo
+```
+
+Verified:
+
+```bash
+kubectl get all -n demo
+```
+
+Result:
+
+```text
+Nginx Deployment Running
+Nginx Pod Running
+```
+
+---
+
+# Production Incident Simulation
+
+This became the most valuable part of the lab.
+
+---
+
+## Incident
+
+Created backup:
+
+```bash
+velero backup create demo-backup \
+--include-namespaces demo
+```
+
+Result:
+
+```text
+Backup Failed
+```
+
+---
+
+# Initial Investigation
+
+Checked:
+
+```bash
+velero backup get
+```
+
+Observed:
+
+```text
+STATUS = Failed
+```
+
+---
+
+## Backup Description
+
+Executed:
+
+```bash
+velero backup describe demo-backup --details
+```
+
+Result:
+
+Backup existed but failed during execution.
+
+No clear root cause identified.
+
+---
+
+## Backup Logs Investigation
+
+Executed:
+
+```bash
+velero backup logs demo-backup
+```
+
+Result:
+
+Additional errors indicated backup storage communication problems.
+
+---
+
+## Backup Storage Validation
+
+Executed:
+
+```bash
+velero backup-location get
+```
+
+Result:
+
+```text
+BackupStorageLocation = Unavailable
+```
+
+This immediately shifted focus from:
+
+```text
+Backup Problem
+```
+
+to
+
+```text
+Storage Backend Problem
+```
+
+---
+
+# Root Cause Analysis (RCA)
+
+Examined Velero Controller Logs:
+
+```bash
+kubectl logs -n velero deployment/velero
+```
+
+Found:
+
+```text
+A region must be set when sending requests to S3
+```
+
+Root Cause:
+
+Velero knew:
+
+* Bucket Name
+* Credentials
+
+But did NOT know:
+
+```text
+AWS Region
+```
+
+BackupStorageLocation configuration was missing:
+
+```yaml
+config:
+  region: ap-south-1
+```
+
+---
+
+# Production Lesson Learned
+
+A running pod does not mean a working application.
+
+Observed:
+
+```text
+Velero Pod = Running
+```
+
+Yet:
+
+```text
+Backups = Failing
+```
+
+Because:
+
+```text
+Dependency Configuration Broken
+```
+
+This is a very common production failure pattern.
+
+---
+
+# Fix Applied
+
+Patched BackupStorageLocation:
+
+```bash
+kubectl patch backupstoragelocation default \
+-n velero \
+--type merge \
+-p '{"spec":{"config":{"region":"ap-south-1"}}}'
+```
+
+---
+
+# Verification
+
+Executed:
+
+```bash
+velero backup-location get
+```
+
+Before:
+
+```text
+Unavailable
+```
+
+After:
+
+```text
+Available
+```
+
+Issue resolved.
+
+---
+
+# Successful Backup Creation
+
+Created a new backup:
+
+```bash
+velero backup create demo-backup-v2 \
+--include-namespaces demo
+```
+
+Verification:
+
+```bash
+velero backup get
+```
+
+Result:
+
+```text
+STATUS = Completed
+```
+
+Backup successfully stored in AWS S3.
+
+---
+
+# Disaster Simulation
+
+Simulated accidental deletion.
+
+Executed:
+
+```bash
+kubectl delete namespace demo
+```
+
+Verification:
+
+```bash
+kubectl get ns
+```
+
+Result:
+
+```text
+demo namespace deleted
+```
+
+Application completely removed from the cluster.
+
+---
+
+# Recovery Process
+
+Initiated restore:
+
+```bash
+velero restore create \
+--from-backup demo-backup-v2
+```
+
+Verification:
+
+```bash
+velero restore get
+```
+
+Result:
+
+```text
+STATUS = Completed
+```
+
+---
+
+# Recovery Validation
+
+Verified Namespace:
+
+```bash
+kubectl get ns
+```
+
+Result:
+
+```text
+demo namespace restored
+```
+
+Verified Workload:
+
+```bash
+kubectl get all -n demo
+```
+
+Result:
+
+```text
+Nginx Deployment Restored
+ReplicaSet Restored
+Pod Running
+```
+
+Disaster recovery successful.
+
+---
+
+# Key Production Learnings
+
+## 1. Backup ≠ Recovery
+
+Most engineers validate:
+
+```text
+Backup Created
+```
+
+Production engineers validate:
+
+```text
+Backup Restored Successfully
+```
+
+---
+
+## 2. Running ≠ Healthy
+
+Observed:
+
+```text
+Velero Pod Running
+```
+
+Yet:
+
+```text
+Backups Failed
+```
+
+Always validate service functionality, not just pod status.
+
+---
+
+## 3. Follow Evidence
+
+Never guess.
+
+Actual workflow:
+
+```text
+Backup Failed
+↓
+Describe
+↓
+Logs
+↓
+Storage Check
+↓
+Root Cause
+↓
+Fix
+↓
+Verify
+```
+
+---
+
+## 4. External Dependencies Matter
+
+Velero depends on:
+
+* AWS Credentials
+* S3 Bucket
+* Region Configuration
+* Network Connectivity
+
+Application health depends on dependency health.
+
+---
+
+# Real Production Relevance
+
+This exact workflow is used when:
+
+* Production namespaces are accidentally deleted
+* Clusters are rebuilt
+* Migrations fail
+* Platform teams perform DR drills
+* Critical workloads need recovery after outages
+
+The same investigation process used in this lab is identical to real-world SRE and Platform Engineering incident response.
+
+---
+
+# Interview Questions
+
+### Q1
+
+What is Velero?
+
+### A
+
+Velero is a Kubernetes backup and disaster recovery tool that backs up cluster resources and can restore workloads after failures, accidental deletions, or cluster migrations.
+
+---
+
+### Q2
+
+What was the root cause of the failed backup?
+
+### A
+
+The BackupStorageLocation was missing the AWS region configuration, preventing Velero from resolving the correct S3 endpoint.
+
+---
+
+### Q3
+
+How did you troubleshoot the issue?
+
+### A
+
+I checked backup status, inspected backup details, reviewed controller logs, validated BackupStorageLocation health, identified the missing AWS region configuration, applied a fix, and verified successful backup creation.
+
+---
+
+### Q4
+
+Why is restore testing important?
+
+### A
+
+A backup is only useful if it can successfully restore workloads. Recovery validation proves the backup is actually usable during a disaster.
+
+---
+
+# Day 102 Verdict
+
+```text
+LEARN   ✅
+BUILD   ✅
+BREAK   ✅
+DEBUG   ✅
+FIX     ✅
+BACKUP  ✅
+RESTORE ✅
+VERIFY  ✅
+```
+
+This was one of the most production-realistic labs completed so far because it included a genuine failure, root cause analysis, corrective action, and successful disaster recovery validation.
+
+---
 
 
 **Commands Used:**
