@@ -1,7 +1,7 @@
 ## 📊 Progress
 
 ```
-█████████░░░░░ Day 97/180
+█████████░░░░░ Day 102/180
 ```
 
 | Phase | Days | Topics | Status |
@@ -10,7 +10,9 @@
 | Phase 1 | 15–23 | Docker + Git Production | ✅ Complete |
 | Phase 1 | 24–42 | Advanced Docker + Projects | ✅ Complete |
 | Phase 2 | 43–60 | Kubernetes + CI/CD | ✅ Complete |
-| Phase 2 | 60–100 | Kubernetes + AWS | In Progress |
+| Phase 2 | 60–100 | Kubernetes + AWS | ✅ Complete |
+| Phase 2 | 100–150 | AWS EKS Production | In Progress |
+
 
 
 ---
@@ -7285,6 +7287,445 @@ VERIFY  ✅
 ```
 
 This was one of the most production-realistic labs completed so far because it included a genuine failure, root cause analysis, corrective action, and successful disaster recovery validation.
+
+---
+
+# Day 102 – Backup & Disaster Recovery with Velero + AWS S3
+
+## Learning Objective
+
+Understand how Kubernetes backup and disaster recovery works using Velero and AWS S3, perform end-to-end backup and restore operations, troubleshoot backup failures, and validate recovery through disaster simulation.
+
+---
+
+## What I Learned Today
+
+Today I learned how production teams protect Kubernetes workloads from accidental deletion, cluster failures, and infrastructure disasters using Velero.
+
+I understood the difference between:
+
+* Cluster Backup
+* Volume Backup
+* Database Backup
+
+and why a complete Disaster Recovery (DR) strategy requires all three.
+
+---
+
+## Concepts Covered
+
+### Velero
+
+Velero is a Kubernetes Backup and Disaster Recovery tool.
+
+It helps backup:
+
+* Namespaces
+* Deployments
+* Services
+* ConfigMaps
+* Secrets
+* StatefulSets
+* PVC Definitions
+
+and restore them when required.
+
+---
+
+### Cluster Backup vs Data Backup
+
+One of the biggest learnings today.
+
+#### Cluster Backup
+
+Stores Kubernetes resources:
+
+```text
+Deployment
+Service
+Ingress
+ConfigMap
+Secret
+Namespace
+```
+
+Velero primarily handles this.
+
+---
+
+#### Data Backup
+
+Stores actual application data:
+
+```text
+PostgreSQL Data
+MySQL Data
+User Files
+Orders
+Transactions
+```
+
+Usually handled using:
+
+```text
+pg_dump
+CSI Snapshots
+EBS Snapshots
+AWS Backup
+```
+
+---
+
+### Important Lesson
+
+```text
+Velero restores WHAT was running.
+
+Database backup restores WHAT users created.
+```
+
+---
+
+## Hands-On Activities Performed
+
+### 1. Created AWS Infrastructure
+
+Configured:
+
+* S3 Bucket
+* IAM User
+* Access Key
+* Secret Key
+
+Purpose:
+
+Store backups outside the Kubernetes cluster.
+
+---
+
+### 2. Installed Velero
+
+Configured:
+
+```text
+Kubernetes
+↓
+Velero
+↓
+AWS S3
+```
+
+Verified:
+
+```bash
+kubectl get pods -n velero
+```
+
+Velero server became operational.
+
+---
+
+### 3. Created Test Workload
+
+Created namespace:
+
+```bash
+kubectl create namespace demo
+```
+
+Created deployment:
+
+```bash
+kubectl create deployment nginx \
+--image=nginx \
+-n demo
+```
+
+Verified workload was healthy.
+
+---
+
+### 4. Created First Backup
+
+Executed:
+
+```bash
+velero backup create demo-backup \
+--include-namespaces demo
+```
+
+Expected success.
+
+Actual result:
+
+```text
+Failed
+```
+
+---
+
+## Production Incident Simulation
+
+This became the most valuable part of the lab.
+
+Instead of reinstalling Velero, I followed a structured debugging process.
+
+---
+
+### Investigation Process
+
+Checked backup status:
+
+```bash
+velero backup get
+```
+
+Checked backup details:
+
+```bash
+velero backup describe demo-backup --details
+```
+
+Checked backup logs:
+
+```bash
+velero backup logs demo-backup
+```
+
+Checked Backup Storage Location:
+
+```bash
+velero backup-location get
+```
+
+Observed:
+
+```text
+Unavailable
+```
+
+---
+
+### Root Cause Analysis
+
+Inspected Velero controller logs:
+
+```bash
+kubectl logs -n velero deployment/velero
+```
+
+Found error:
+
+```text
+A region must be set when sending requests to S3
+```
+
+Root Cause:
+
+Velero was configured with:
+
+* Bucket Name
+* AWS Credentials
+
+But AWS Region was missing.
+
+---
+
+### Fix Applied
+
+Patched BackupStorageLocation:
+
+```bash
+kubectl patch backupstoragelocation default \
+-n velero \
+--type merge \
+-p '{"spec":{"config":{"region":"ap-south-1"}}}'
+```
+
+Verification:
+
+```bash
+velero backup-location get
+```
+
+Result:
+
+```text
+Available
+```
+
+Issue resolved.
+
+---
+
+### Created Successful Backup
+
+Created new backup:
+
+```bash
+velero backup create demo-backup-v2 \
+--include-namespaces demo
+```
+
+Verified:
+
+```bash
+velero backup get
+```
+
+Result:
+
+```text
+Completed
+```
+
+---
+
+## Disaster Recovery Test
+
+### Simulated Disaster
+
+Deleted namespace:
+
+```bash
+kubectl delete namespace demo
+```
+
+Result:
+
+```text
+Namespace Gone
+Deployment Gone
+Pod Gone
+```
+
+---
+
+### Recovery Process
+
+Restored from backup:
+
+```bash
+velero restore create \
+--from-backup demo-backup-v2
+```
+
+Verified:
+
+```bash
+velero restore get
+```
+
+Result:
+
+```text
+Completed
+```
+
+---
+
+### Recovery Validation
+
+Checked:
+
+```bash
+kubectl get ns
+kubectl get all -n demo
+```
+
+Observed:
+
+```text
+Namespace Restored
+Deployment Restored
+ReplicaSet Restored
+Pod Running
+```
+
+Disaster Recovery Successful.
+
+---
+
+## Real Production Learnings
+
+### Lesson 1
+
+```text
+Pod Running ≠ Application Healthy
+```
+
+Velero pod was running even when backups were failing.
+
+---
+
+### Lesson 2
+
+```text
+Backup Created ≠ Backup Valid
+```
+
+Always test restore.
+
+---
+
+### Lesson 3
+
+```text
+Debug First
+Restore Last
+```
+
+Never restore before understanding the root cause.
+
+---
+
+### Lesson 4
+
+```text
+Backup
+↓
+Delete
+↓
+Restore
+↓
+Verify
+```
+
+This is the actual Disaster Recovery cycle.
+
+---
+
+## Practical Experience Gained
+
+Today was not just theory.
+
+I:
+
+✅ Installed Velero
+
+✅ Integrated AWS S3
+
+✅ Created backups
+
+✅ Faced a real backup failure
+
+✅ Performed Root Cause Analysis
+
+✅ Fixed configuration issues
+
+✅ Validated backup success
+
+✅ Simulated a disaster
+
+✅ Restored workloads
+
+✅ Verified successful recovery
+
+---
+
+## Summary
+
+Implemented and validated Kubernetes backup and disaster recovery using Velero and AWS S3, performed root cause analysis on backup failures, resolved BackupStorageLocation configuration issues, and successfully restored workloads through end-to-end disaster recovery testing.
 
 ---
 
