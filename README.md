@@ -7729,6 +7729,221 @@ Implemented and validated Kubernetes backup and disaster recovery using Velero a
 
 ---
 
+# LLM Drift Monitor — Production Deployment (Day 103–114)
+
+## Overview
+
+This phase took LLM Drift Monitor from a working local application to a production-style deployment on Kubernetes. Documented here are the actual steps, decisions, and problems encountered.
+
+Stack: FastAPI backend · Next.js frontend · Supabase · Docker · Kubernetes · Helm · Argo CD · Prometheus + Grafana
+
+---
+
+## Phase 1 — Containerization
+
+Both services got production Dockerfiles with multi-stage builds.
+
+**Backend (FastAPI):**
+- Build stage installs dependencies via pip
+- Runtime stage copies only installed packages and app code
+- Runs as non-root user
+- Final image size reduced significantly by excluding dev dependencies
+
+**Frontend (Next.js):**
+- Build stage runs `next build`
+- Runtime stage serves the `.next/standalone` output only
+- No dev dependencies in the final image
+
+Docker Compose was used locally to validate inter-container communication before touching Kubernetes. Environment variables injected via `.env` files — no credentials baked into the image.
+
+Health checks added to both services so Compose (and later Kubernetes) gates traffic on actual readiness, not just process start.
+
+---
+
+## Phase 2 — Kubernetes
+
+Moved from Compose to a local Kubernetes cluster.
+
+**Namespace:** `llm-monitor` — keeps all app resources isolated from anything else on the cluster.
+
+**Deployments:** Separate Deployment objects for backend and frontend.
+- `replicas: 2` for backend to verify the app is stateless (session state lives in Supabase — confirmed)
+- `RollingUpdate` strategy with `maxUnavailable: 0` so upgrades don't drop traffic
+- Liveness and readiness probes pointing to `/health` on the backend
+
+**Services:** ClusterIP for both. Internal communication uses `http://backend-service:8000` — not localhost, not hardcoded IPs.
+
+**Ingress (NGINX):**
+```
+/     → frontend-service:3000
+/api  → backend-service:8000
+```
+Path rewriting was required on the `/api` prefix — the backend doesn't expect that prefix in its routes.
+
+**ConfigMaps:** Non-sensitive env vars like `NEXT_PUBLIC_API_URL` live here. Changing the API endpoint doesn't require rebuilding the image.
+
+**Secrets:** Supabase URL, Supabase anon key, and third-party API keys are base64-encoded and mounted as environment variables. Nothing sensitive is in the repo or the image.
+
+**Resource limits:**
+```yaml
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "256Mi"
+```
+Without limits, a misbehaving pod can starve the node. Requests tell the scheduler where it can fit the pod.
+
+**Bug hit here:** Supabase URL was coming through as an empty string at runtime. Root cause — the Secret key name in the Deployment env block didn't match the actual key in the Secret manifest. Fixed by cross-checking with:
+```bash
+kubectl describe pod <pod-name> -n llm-monitor
+kubectl get secret llm-monitor-secrets -o yaml
+```
+
+---
+
+## Phase 3 — Helm
+
+Raw YAML doesn't scale across environments. Helm converts manifests into parameterized templates.
+
+**Chart structure:**
+```
+helm/llm-monitor/
+├── Chart.yaml
+├── values.yaml
+├── values-dev.yaml
+├── values-staging.yaml
+├── values-prod.yaml
+└── templates/
+    ├── deployment-backend.yaml
+    ├── deployment-frontend.yaml
+    ├── service-backend.yaml
+    ├── service-frontend.yaml
+    ├── configmap.yaml
+    ├── secret.yaml
+    └── ingress.yaml
+```
+
+Image tag, replica count, resource limits, and ingress host are all parameterized. The same templates deploy to dev (1 replica, low limits) and prod (2 replicas, higher limits) by switching the values file.
+
+```bash
+# Deploy to dev
+helm upgrade --install llm-monitor ./helm/llm-monitor -f values-dev.yaml -n llm-monitor
+
+# Deploy to prod
+helm upgrade --install llm-monitor ./helm/llm-monitor -f values-prod.yaml -n llm-monitor
+
+# Rollback
+helm rollback llm-monitor 1 -n llm-monitor
+```
+
+---
+
+## Phase 4 — GitOps with Argo CD
+
+Installed Argo CD on the cluster. Connected it to the GitHub repo pointing at the `helm/` directory.
+
+Argo CD watches for drift between desired state (Git) and actual state (cluster) and syncs automatically on push to `main`.
+
+```
+Push to GitHub → Argo CD detects diff → Syncs to cluster
+```
+
+Verified in Argo CD UI:
+- App health status (Healthy / Degraded / Progressing)
+- Sync status (Synced / OutOfSync)
+- Full resource tree — Deployments, Services, Pods under the app
+- Rollback to a previous Git commit
+
+Note: Argo CD auto-sync overwrites manual `kubectl apply` changes. All config changes go through Git — which is the point.
+
+---
+
+## Phase 5 — Monitoring
+
+Installed `kube-prometheus-stack` via Helm into a `monitoring` namespace. Bundles:
+- Prometheus (metrics collection)
+- Grafana (dashboards)
+- Alertmanager (alert routing)
+- kube-state-metrics (Kubernetes object metrics)
+- node-exporter (host-level metrics)
+
+**PromQL queries verified against the live cluster:**
+```promql
+# All scrape targets currently up
+up
+
+# Pod info across cluster
+kube_pod_info
+
+# Deployment replica status
+kube_deployment_status_replicas{namespace="llm-monitor"}
+
+# Container memory usage
+container_memory_usage_bytes{namespace="llm-monitor"}
+```
+
+Grafana was port-forwarded locally. Browsed default Kubernetes dashboards — CPU/memory per pod, network I/O, deployment rollout history all visible.
+
+---
+
+## Architecture
+
+```
+Git (main branch)
+       │
+       ▼
+   Argo CD
+       │
+       ▼
+ Helm Release (llm-monitor)
+       │
+  ┌────┴────┐
+  ▼         ▼
+Backend   Frontend
+Pods      Pods
+  │         │
+  └────┬────┘
+       ▼
+  ClusterIP Services
+       ▼
+  NGINX Ingress
+       ▼
+  /  and  /api routing
+  to respective services
+
+         +
+
+  Prometheus scrapes cluster
+  Grafana reads from Prometheus
+```
+
+---
+
+## Cluster Commands Reference
+
+```bash
+# Pod status
+kubectl get pods -n llm-monitor
+
+# Pod logs
+kubectl logs -n llm-monitor deployment/backend
+
+# Ingress check
+kubectl get ingress -n llm-monitor
+
+# Helm release status
+helm status llm-monitor -n llm-monitor
+
+# Helm release history
+helm history llm-monitor -n llm-monitor
+
+# Port-forward Grafana
+kubectl port-forward svc/kube-prometheus-stack-grafana 3000:80 -n monitoring
+```
+
 
 **Commands Used:**
 ```bash
